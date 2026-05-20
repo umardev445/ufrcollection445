@@ -1,0 +1,220 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isEmailVerified() {
+      return request.auth.token.email_verified == true;
+    }
+
+    function isHardcodedAdmin() {
+      return isSignedIn() && 
+             request.auth.token.email != null &&
+             request.auth.token.email.lower() == 'umardev750@gmail.com'.lower();
+    }
+
+    function isAdmin() {
+      return isHardcodedAdmin() || (
+        isSignedIn() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+      );
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Offers Collection ---
+    match /offers/{offerId} {
+      allow get, list: if true;
+
+      function isValidOffer(data) {
+        return data.keys().hasAll(['name', 'type', 'status']) &&
+               data.name is string && data.name.size() <= 100 &&
+               data.type in ['percentage', 'fixed', 'bogo', 'free_shipping', 'seasonal'] &&
+               data.status in ['active', 'inactive'] &&
+               (data.keys().hasAll(['description']) ? (data.description is string && data.description.size() <= 2000) : true) &&
+               (data.keys().hasAll(['value']) ? data.value is number : true) &&
+               (data.keys().hasAll(['offerLabel']) ? (data.offerLabel is string && data.offerLabel.size() <= 50) : true) &&
+               (data.keys().hasAll(['productIds']) ? data.productIds is list : true) &&
+               (data.keys().hasAll(['categories']) ? data.categories is list : true) &&
+               (data.keys().hasAll(['bannerImage']) ? (data.bannerImage is string && data.bannerImage.size() <= 2000) : true) &&
+               (data.keys().hasAll(['startDate']) ? (data.startDate is string && data.startDate.size() <= 100) : true) &&
+               (data.keys().hasAll(['endDate']) ? (data.endDate is string && data.endDate.size() <= 100) : true) &&
+               (data.keys().hasAll(['createdAt']) ? data.createdAt is timestamp : true) &&
+               (data.keys().hasAll(['updatedAt']) ? data.updatedAt is timestamp : true);
+      }
+
+      allow create: if isHardcodedAdmin();
+      allow update: if isHardcodedAdmin();
+      allow delete: if isHardcodedAdmin();
+    }
+
+    // --- Users Collection ---
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isHardcodedAdmin(); // Use hardcoded check for list/get to avoid N+1
+      allow list: if isHardcodedAdmin();
+
+      function isValidUser(data) {
+        return data.keys().hasAll(['uid', 'email', 'role']) &&
+               data.uid == request.auth.uid &&
+               data.role in ['user', 'admin'] &&
+               data.email is string && data.email.size() <= 100 &&
+               (data.keys().hasAll(['name']) ? (data.name is string && data.name.size() <= 100) : true) &&
+               (data.keys().hasAll(['phone']) ? (data.phone is string && data.phone.size() <= 20) : true);
+      }
+
+      allow create: if (isSignedIn() && isOwner(userId) && isValidUser(incoming()) && 
+                    (incoming().role == 'user' || (incoming().role == 'admin' && request.auth.token.email != null && request.auth.token.email.lower() == 'umardev750@gmail.com'.lower()))) || isHardcodedAdmin();
+      allow update: if (isOwner(userId) && isValidUser(incoming()) && incoming().role == existing().role) || isHardcodedAdmin();
+      allow delete: if isHardcodedAdmin();
+    }
+
+    // --- Products Collection ---
+    match /products/{productId} {
+      allow read: if true; 
+
+      function isValidProduct(data) {
+        return data.keys().hasAll(['name', 'price', 'category', 'description', 'images', 'stock']) &&
+               data.name is string && data.name.size() <= 200 &&
+               data.description is string && data.description.size() <= 2000 &&
+               data.price is number && data.price >= 0 &&
+               data.category is string && data.category.size() <= 100 &&
+               data.images is list && data.images.size() <= 10 &&
+               data.stock is number && data.stock >= 0 &&
+               (data.keys().hasAll(['salePrice']) ? (data.salePrice is number || data.salePrice == null) : true) &&
+               (data.keys().hasAll(['featured']) ? data.featured is bool : true) &&
+               (data.keys().hasAll(['isNew']) ? data.isNew is bool : true) &&
+               (data.keys().hasAll(['isBestSeller']) ? data.isBestSeller is bool : true) &&
+               (data.keys().hasAll(['collectionIds']) ? data.collectionIds is list : true) &&
+               (data.keys().hasAll(['updatedAt']) ? data.updatedAt is timestamp : true);
+      }
+
+      allow create: if isValidId(productId) && isHardcodedAdmin() && isValidProduct(incoming());
+      allow update: if isValidId(productId) && isHardcodedAdmin() && isValidProduct(incoming());
+      allow delete: if isValidId(productId) && isHardcodedAdmin();
+
+      // --- Reviews Subcollection ---
+      match /reviews/{reviewId} {
+        allow read: if true;
+
+        function isValidReview(data) {
+          return data.keys().hasAll(['userId', 'userName', 'rating', 'comment', 'createdAt']) &&
+                 data.userId == request.auth.uid &&
+                 data.userName is string && data.userName.size() <= 100 &&
+                 data.rating is number && data.rating >= 1 && data.rating <= 5 &&
+                 data.comment is string && data.comment.size() >= 5 && data.comment.size() <= 1000 &&
+                 data.createdAt == request.time;
+        }
+
+        allow create: if isSignedIn() && isValidId(reviewId) && isValidReview(incoming());
+        allow update: if false; // Reviews are permanent appraisals or deleted/re-submitted
+        allow delete: if (isSignedIn() && (resource.data.userId == request.auth.uid)) || isHardcodedAdmin();
+      }
+    }
+
+    // --- Orders Collection ---
+    match /orders/{orderId} {
+      // Visibility: Users see their own. Admin sees all. Guest can track specific ID.
+      allow get: if isValidId(orderId) && ((isSignedIn() && (resource.data.userId == request.auth.uid || isHardcodedAdmin())) || (!isSignedIn() && resource.data.userId == 'guest'));
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isHardcodedAdmin());
+
+      function isValidOrder(data) {
+        return data.keys().hasAll(['orderId', 'userId', 'items', 'total', 'status', 'paymentMethod', 'customer']) &&
+               data.orderId is string && data.orderId.size() <= 100 &&
+               (isHardcodedAdmin() || data.userId == 'guest' || (isSignedIn() && data.userId == request.auth.uid)) &&
+               data.items is list && data.items.size() > 0 && data.items.size() <= 50 &&
+               data.total is number && data.total >= 0 &&
+               data.status in ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'] &&
+               data.paymentMethod in ['cod', 'jazzcash', 'easypaisa'] &&
+               data.customer is map &&
+               (data.keys().hasAll(['paymentStatus']) ? data.paymentStatus in ['pending', 'pending_verification', 'verified', 'failed'] : true) &&
+               (data.keys().hasAll(['trxId']) ? (data.trxId is string || data.trxId == null) : true) &&
+               (data.keys().hasAll(['subtotal']) ? data.subtotal is number : true) &&
+               (data.keys().hasAll(['deliveryCharges']) ? data.deliveryCharges is number : true) &&
+               (data.keys().hasAll(['dispatchedAt']) ? (data.dispatchedAt is timestamp || data.dispatchedAt == null) : true) &&
+               (data.keys().hasAll(['notificationSent']) ? data.notificationSent is bool : true) &&
+               (data.keys().hasAll(['updatedAt']) ? (data.updatedAt is timestamp || data.updatedAt == null) : true) &&
+               (data.keys().hasAll(['createdAt']) ? (data.createdAt is timestamp || data.createdAt == null) : true);
+      }
+
+      allow create: if isValidId(orderId) && isValidOrder(incoming());
+      
+      allow update: if isValidId(orderId) && (
+        (isHardcodedAdmin() && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt', 'dispatchedAt', 'notificationSent', 'paymentStatus']) && isValidOrder(incoming())) ||
+        (isSignedIn() && isOwner(resource.data.userId) && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt']) && existing().status == 'pending' && incoming().status == 'cancelled')
+      );
+
+      allow delete: if isValidId(orderId) && isHardcodedAdmin();
+    }
+
+    // --- Wishlists Collection ---
+    match /wishlists/{userId} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId);
+    }
+
+    // --- Homepage Config ---
+    match /homepage_config/{configId} {
+      allow read: if true;
+      allow write: if isValidId(configId) && isHardcodedAdmin();
+    }
+
+    // --- Lucky Draw Tokens ---
+    match /lucky_draw_tokens/{tokenId} {
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isHardcodedAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isHardcodedAdmin());
+
+      function isValidToken(data) {
+        return data.keys().hasAll(['userId', 'orderId', 'tokenNumber', 'status', 'createdAt']) &&
+               data.userId is string && data.orderId is string &&
+               data.tokenNumber is string && data.tokenNumber.size() <= 20 &&
+               data.status in ['pending', 'active', 'expired', 'winner'] &&
+               data.createdAt is timestamp &&
+               (data.keys().hasAll(['prize']) ? (data.prize is string && data.prize.size() <= 200) : true);
+      }
+
+      allow create: if isSignedIn() && isValidToken(incoming()) && incoming().userId == request.auth.uid;
+      allow update, delete: if isHardcodedAdmin();
+    }
+
+    // --- Lucky Draw Config ---
+    match /lucky_draw_config/{configId} {
+      allow read: if true;
+      allow write: if isHardcodedAdmin();
+    }
+
+    // --- Lucky Draw History ---
+    match /lucky_draw_history/{historyId} {
+      allow read: if true;
+      allow write: if isHardcodedAdmin();
+    }
+
+    // --- Notification Requests ---
+    match /notification_requests/{requestId} {
+      allow read, create: if true;
+      allow update, delete: if isHardcodedAdmin();
+    }
+  }
+}

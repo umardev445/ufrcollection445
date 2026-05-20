@@ -1,0 +1,237 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and role information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "admin"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Luxury fashion article",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "price": { "type": "number" },
+        "salePrice": { "type": "number" },
+        "discount": { "type": "number" },
+        "isNew": { "type": "boolean" },
+        "isBestSeller": { "type": "boolean" },
+        "category": { "type": "string" },
+        "description": { "type": "string" },
+        "images": { "type": "array", "items": { "type": "string" } },
+        "featured": { "type": "boolean" },
+        "sizes": { "type": "array", "items": { "type": "string" } },
+        "stock": { "type": "object" },
+        "collectionIds": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "price", "category"]
+    },
+    "Collection": {
+      "title": "Collection",
+      "description": "Curated set of luxury products",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "slug": { "type": "string" },
+        "description": { "type": "string" },
+        "bannerImage": { "type": "string" },
+        "thumbnailImage": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "inactive"] },
+        "order": { "type": "number" },
+        "productIds": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "slug", "status"]
+    },
+    "HomepageConfig": {
+      "title": "Homepage Configuration",
+      "description": "Dynamic configuration for the boutique home page",
+      "type": "object",
+      "properties": {
+        "heroSlides": { 
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "image": { "type": "string" },
+              "mobileImage": { "type": "string" },
+              "title": { "type": "string" },
+              "subtitle": { "type": "string" },
+              "cta": { "type": "string" },
+              "link": { "type": "string" },
+              "secondaryCta": { "type": "string" },
+              "secondaryLink": { "type": "string" },
+              "order": { "type": "number" }
+            }
+          }
+        },
+        "sections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "type": { "type": "string" },
+              "enabled": { "type": "boolean" },
+              "heading": { "type": "string" },
+              "subheading": { "type": "string" },
+              "bgImage": { "type": "string" },
+              "bgColor": { "type": "string" },
+              "order": { "type": "number" }
+            }
+          }
+        },
+        "banners": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "image": { "type": "string" },
+              "title": { "type": "string" },
+              "subtitle": { "type": "string" },
+              "cta": { "type": "string" },
+              "link": { "type": "string" },
+              "textColor": { "type": "string" },
+              "position": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "Offer": {
+      "title": "Offer",
+      "description": "Special promotion or discount offer",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "type": { "type": "string", "enum": ["percentage", "fixed", "bogo", "free_shipping", "seasonal"] },
+        "value": { "type": "number" },
+        "offerLabel": { "type": "string" },
+        "startDate": { "type": "string", "format": "date-time" },
+        "endDate": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["active", "inactive"] },
+        "productIds": { "type": "array", "items": { "type": "string" } },
+        "categories": { "type": "array", "items": { "type": "string" } },
+        "bannerImage": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "type", "status"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Client order for couture articles",
+      "type": "object",
+      "properties": {
+        "orderId": { "type": "string" },
+        "userId": { "type": "string" },
+        "customer": { "type": "object" },
+        "items": { "type": "array" },
+        "total": { "type": "number" },
+        "status": { "type": "string" },
+        "paymentMethod": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["orderId", "items", "total", "status"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "Customer appraisal for an article",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "rating": { "type": "number" },
+        "comment": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "userName", "rating", "comment", "createdAt"]
+    },
+    "LuckyDrawToken": {
+      "title": "Lucky Draw Token",
+      "description": "Unique entry for the promotion",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "orderId": { "type": "string" },
+        "tokenNumber": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "expired", "winner"] },
+        "prize": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "orderId", "tokenNumber", "status", "createdAt"]
+    },
+    "LuckyDrawConfig": {
+      "title": "Lucky Draw Configuration",
+      "description": "Global settings for the promotion",
+      "type": "object",
+      "properties": {
+        "status": { "type": "string", "enum": ["active", "inactive"] },
+        "startDate": { "type": "string", "format": "date-time" },
+        "drawDate": { "type": "string", "format": "date-time" },
+        "winners": { 
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "userId": { "type": "string" },
+              "userName": { "type": "string" },
+              "tokenNumber": { "type": "string" },
+              "prize": { "type": "string" },
+              "position": { "type": "number" }
+            }
+          }
+        }
+      },
+      "required": ["status"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "products/{productId}": {
+      "schema": "Product",
+      "description": "Fashion products"
+    },
+    "products/{productId}/reviews/{reviewId}": {
+      "schema": "Review",
+      "description": "Customer reviews for products"
+    },
+    "orders/{orderId}": {
+      "schema": "Order",
+      "description": "Client orders"
+    },
+    "offers/{offerId}": {
+      "schema": "Offer",
+      "description": "Special offers and promotions"
+    },
+    "homepage_config/main": {
+      "schema": "HomepageConfig",
+      "description": "Boutique homepage dynamic configuration"
+    },
+    "lucky_draw_tokens/{tokenId}": {
+      "schema": "LuckyDrawToken",
+      "description": "Lucky draw competition entries"
+    },
+    "lucky_draw_config/current": {
+      "schema": "LuckyDrawConfig",
+      "description": "Lucky draw promotion settings and results"
+    }
+  }
+}

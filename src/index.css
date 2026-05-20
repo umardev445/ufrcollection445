@@ -1,0 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Playfair Display", serif;
+  --font-sans: "Montserrat", sans-serif;
+
+  --color-brand-beige: #F5F0E8;
+  --color-brand-cream: #FFFDF9;
+  --color-brand-white: #FFFFFF;
+  --color-brand-gold: #D4AF37;
+  --color-brand-gold-light: #E8D5A4;
+  --color-brand-gold-dark: #B8960F;
+  --color-brand-black: #1A1A1A;
+  --color-brand-black-light: #2C2C2C;
+  --color-brand-grey: #2C2C2C;
+
+  --radius-luxury: 12px;
+  --radius-luxury-lg: 24px;
+  --shadow-luxury: 0 4px 12px rgba(0,0,0,0.05);
+  --shadow-luxury-hover: 0 20px 35px -12px rgba(0,0,0,0.15);
+  --shadow-gold-glow: 0 8px 24px rgba(212,175,55,0.2);
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  --animate-marquee: marquee 30s linear infinite;
+}
+
+@layer base {
+  body {
+    @apply font-sans bg-brand-cream text-brand-black selection:bg-brand-gold selection:text-white;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif;
+  }
+}
+
+.luxury-card-hover {
+  @apply transition-all duration-300 ease-out hover:shadow-luxury hover:-translate-y-1;
+}
+
+@layer components {
+  .luxury-shadow {
+    @apply shadow-luxury;
+  }
+  .btn-primary {
+    @apply bg-brand-gold text-brand-black rounded-full font-bold uppercase tracking-widest text-center transition-all duration-300 active:scale-95 flex items-center justify-center gap-2;
+    @apply py-2.5 px-6 text-[10px] md:py-3 md:px-8 md:text-xs;
+    @apply hover:bg-brand-black hover:text-brand-gold hover:scale-[1.02];
+  }
+}
+
+.gold-gradient {
+  background: linear-gradient(135deg, #D4AF37 0%, #F5F0E8 50%, #D4AF37 100%);
+}
