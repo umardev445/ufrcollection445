@@ -1,11 +1,15 @@
 const ACCESS_KEY = (import.meta as any).env.VITE_WEB3FORMS_KEY || 'bee6658a-e1f9-4bae-ba1a-52261a2b0bd8';
 const API_URL = 'https://api.web3forms.com/submit';
 
+// Admin email address (change to your email)
+const ADMIN_EMAIL = 'umardev750@gmail.com';
+
 export const emailService = {
-  async sendEmail(to: string, subject: string, message: string) {
+  // Core email sending function
+  async sendEmail(to: string, subject: string, message: string, isHtml: boolean = false) {
     if (!ACCESS_KEY) {
       console.warn('Maison: Web3Forms access key not found');
-      return;
+      return false;
     }
     try {
       const response = await fetch(API_URL, {
@@ -23,85 +27,237 @@ export const emailService = {
         })
       });
       const result = await response.json();
-      if (!result.success) {
+      if (result.success) {
+        console.log(`✅ Email sent to: ${to}`);
+        return true;
+      } else {
         console.error('Web3Forms Error:', result);
+        return false;
       }
     } catch (error) {
       console.error('Email error:', error);
+      return false;
     }
   },
 
+  // ✅ CUSTOMER ONLY - Order Confirmation Email
   async sendOrderConfirmation(order: any) {
-    const itemsList = order.items.map((item: any) => `- ${item.name} (${item.size}) x ${item.quantity}`).join('\n');
+    const itemsList = order.items.map((item: any) => 
+      `• ${item.name} (Size: ${item.size || 'One Size'}, Color: ${item.color || 'Standard'}) x ${item.quantity}`
+    ).join('\n');
+    
     const message = `
-Hello ${order.customer.firstName},
+╔══════════════════════════════════════════════════════╗
+║              UFR COLLECTION - ORDER CONFIRMED        ║
+╚══════════════════════════════════════════════════════╝
 
-Your order ${order.orderId} has been confirmed.
+Dear ${order.customer.firstName} ${order.customer.lastName},
 
-Order Details:
-${itemsList}
+Thank you for shopping with UFR Collection! Your order has been 
+successfully placed and will be processed shortly.
 
-Total Amount: PKR ${order.total}
-Payment Method: ${order.paymentMethod.toUpperCase()}
-Shipping Address: ${order.customer.address}, ${order.customer.city}
-
-${order.luckyDrawToken ? `LUCKY DRAW TOKEN: ${order.luckyDrawToken}` : ''}
-
-Thank you for choosing UFR Collection.
-    `;
-    await this.sendEmail(order.customer.email, `Order Confirmation - ${order.orderId}`, message);
-  },
-
-  async sendStatusUpdate(order: any) {
-    const message = `
-Hello ${order.customer.firstName},
-
-The status of your order ${order.orderId} has been updated.
-
-New Status: ${order.status.toUpperCase()}
-${order.trackingNumber ? `Tracking Number: ${order.trackingNumber}` : ''}
-
-You can track your order on our website.
-
-Best regards,
-UFR Collection
-    `;
-    await this.sendEmail(order.customer.email, `Order Status Update - ${order.orderId}`, message);
-  },
-
-  async sendAdminOrderAlert(order: any) {
-    const itemsList = order.items.map((item: any) => `- ${item.name} (${item.size}) x ${item.quantity}`).join('\n');
-    const message = `
-New order received!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 ORDER DETAILS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Order ID: ${order.orderId}
-Customer: ${order.customer.firstName} ${order.customer.lastName}
-Email: ${order.customer.email}
-Phone: ${order.customer.phone}
+Order Date: ${new Date().toLocaleDateString()}
+Payment Method: ${order.paymentMethod.toUpperCase()}
+Delivery Charges: ${order.deliveryCharges === 0 ? 'FREE' : 'PKR ' + order.deliveryCharges}
 
-Items:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🛍️ ITEMS ORDERED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 ${itemsList}
 
-Total: PKR ${order.total}
-Payment Method: ${order.paymentMethod.toUpperCase()}
-TrxID: ${order.trxId || 'N/A'}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💰 ORDER SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Login to admin panel to manage this order.
+Subtotal: PKR ${order.subtotal}
+Delivery: ${order.deliveryCharges === 0 ? 'FREE' : 'PKR ' + order.deliveryCharges}
+Total Amount: PKR ${order.total}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📍 SHIPPING ADDRESS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${order.customer.address}
+${order.customer.city}, ${order.customer.province}
+Phone: ${order.customer.phone}
+
+${order.luckyDrawToken ? `
+🎁 LUCKY DRAW TOKEN 🎁
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Your Lucky Draw Token: ${order.luckyDrawToken}
+This token is automatically entered into our next lucky draw.
+Prizes include iPhone 17, Honda Civic, and Cash prizes!
+` : ''}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📞 NEED HELP?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Track your order: https://ufrcollection.netlify.app/track-order
+Contact Support: https://wa.me/923001234567
+
+Thank you for choosing UFR Collection!
+Where tradition meets contemporary luxury.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     `;
-    await this.sendEmail('admin@ufrcollection.com', `New Order Received - ${order.orderId}`, message);
+    
+    // ✅ Sirf customer ko bhejein
+    return await this.sendEmail(order.customer.email, `🛍️ Order Confirmed! #${order.orderId} - UFR Collection`, message);
   },
 
+  // ✅ CUSTOMER ONLY - Order Status Update Email
+  async sendStatusUpdate(order: any) {
+    const statusMessages: Record<string, string> = {
+      pending: 'Your order has been received and is awaiting confirmation.',
+      confirmed: 'Your order has been confirmed and will be processed soon.',
+      processing: 'Your order is being carefully packed and prepared for shipment.',
+      shipped: 'Your order has been dispatched and is on its way to you!',
+      delivered: 'Your order has been delivered. We hope you love your purchase!',
+      cancelled: 'Your order has been cancelled as requested.'
+    };
+    
+    const message = `
+╔══════════════════════════════════════════════════════╗
+║           UFR COLLECTION - ORDER STATUS UPDATE       ║
+╚══════════════════════════════════════════════════════╝
+
+Dear ${order.customer.firstName},
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 ORDER STATUS UPDATE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Order ID: ${order.orderId}
+New Status: ${order.status.toUpperCase()}
+
+${statusMessages[order.status] || 'Your order status has been updated.'}
+
+${order.trackingNumber ? `📮 Tracking Number: ${order.trackingNumber}` : ''}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Track your order: https://ufrcollection.netlify.app/track-order
+
+Thank you for shopping with UFR Collection!
+    `;
+    
+    // ✅ Sirf customer ko bhejein
+    return await this.sendEmail(order.customer.email, `📦 Order Update #${order.orderId} - UFR Collection`, message);
+  },
+
+  // ✅ ADMIN ONLY - New Order Alert (Sirf Admin ko)
+  async sendAdminOrderAlert(order: any) {
+    const itemsList = order.items.map((item: any, idx: number) => 
+      `${idx + 1}. ${item.name} | Size: ${item.size || 'OS'} | Color: ${item.color || 'Std'} | Qty: ${item.quantity} | Price: PKR ${item.price}`
+    ).join('\n');
+    
+    const message = `
+╔══════════════════════════════════════════════════════╗
+║      🔔 NEW ORDER RECEIVED - UFR COLLECTION 🔔       ║
+╚══════════════════════════════════════════════════════╝
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 ORDER INFORMATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Order ID: ${order.orderId}
+Order Date: ${new Date().toLocaleString()}
+Status: ${order.status || 'PENDING'}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+👤 CUSTOMER DETAILS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Name: ${order.customer.firstName} ${order.customer.lastName}
+Email: ${order.customer.email}
+Phone: ${order.customer.phone}
+Address: ${order.customer.address}
+City: ${order.customer.city}
+Province: ${order.customer.province}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🛍️ ORDER ITEMS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${itemsList}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💰 PAYMENT DETAILS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Subtotal: PKR ${order.subtotal}
+Delivery: ${order.deliveryCharges === 0 ? 'FREE' : 'PKR ' + order.deliveryCharges}
+Total Amount: PKR ${order.total}
+Payment Method: ${order.paymentMethod?.toUpperCase()}
+${order.trxId ? `Transaction ID: ${order.trxId}` : ''}
+
+${order.luckyDrawToken ? `🎁 Lucky Draw Token Generated: ${order.luckyDrawToken}` : ''}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚡ ACTION REQUIRED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Login to admin panel to update order status:
+https://ufrcollection.netlify.app/admin/orders
+
+✅ Verify payment (if JazzCash/EasyPaisa)
+✅ Update order status
+✅ Process shipment
+    `;
+    
+    // ✅ Sirf admin ko bhejein
+    return await this.sendEmail(ADMIN_EMAIL, `🔔 NEW ORDER #${order.orderId} - Action Required`, message);
+  },
+
+  // ✅ CUSTOMER ONLY - Welcome Email
   async sendWelcomeEmail(user: any) {
     const message = `
-Hello ${user.name || 'Valued Client'},
+╔══════════════════════════════════════════════════════╗
+║       WELCOME TO UFR COLLECTION - EXCLUSIVE CLUB     ║
+╚══════════════════════════════════════════════════════╝
 
-Welcome to UFR Collection. We are honored to have you join our exclusive archive.
+Dear ${user.displayName || user.email?.split('@')[0] || 'Valued Client'},
 
-Explore our latest collections and stay tuned for upcoming seasonal heritage pieces.
+We are truly honored to welcome you to the UFR Collection family.
 
-Best regards,
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✨ EXCLUSIVE BENEFITS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Early access to seasonal collections
+• Exclusive member-only offers
+• Birthday special discounts
+• First to know about lucky draws
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🛍️ START SHOPPING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Explore our latest luxury collection:
+https://ufrcollection.netlify.app/shop
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📞 STAY CONNECTED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Follow us on social media for updates:
+📷 Instagram: @ufrcollection
+💬 WhatsApp Support: https://wa.me/923001234567
+
+Welcome to luxury redefined.
+
+With warmth,
 UFR Collection Team
     `;
-    await this.sendEmail(user.email, 'Welcome to UFR Collection', message);
+    
+    // ✅ Sirf customer ko bhejein
+    return await this.sendEmail(user.email, `✨ Welcome to UFR Collection, ${user.displayName || 'Valued Client'}!`, message);
   }
 };

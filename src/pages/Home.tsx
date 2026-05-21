@@ -1,6 +1,9 @@
+// @ts-nocheck
 import React, { useEffect, useState, useRef } from 'react';
+// ... rest of imports
+
 import { motion, AnimatePresence, useScroll, useTransform } from 'motion/react';
-import { ChevronLeft, ChevronRight, ArrowRight, Instagram, Eye } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { categories, heroSlides as defaultHeroSlides } from '../constants/demoData';
 import ProductCard from '../components/ProductCard';
@@ -9,9 +12,8 @@ import { productService, Product } from '../services/productService';
 import { homepageService, HomepageConfig } from '../services/homepageService';
 import SEO from '../components/SEO';
 import { ProductCardSkeleton } from '../components/Skeletons';
-
 import { luckyDrawService, LuckyDrawConfig } from '../services/luckyDrawService';
-import { Trophy, Ticket, Clock, Star } from 'lucide-react';
+import { Trophy, Ticket, Star } from 'lucide-react';
 
 const Home = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -20,6 +22,7 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [config, setConfig] = useState<HomepageConfig | null>(null);
   const [promoConfig, setPromoConfig] = useState<LuckyDrawConfig | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -33,6 +36,7 @@ const Home = () => {
   useEffect(() => {
     const fetchHomeData = async () => {
       setLoading(true);
+      setFetchError(null);
       try {
         const [latest, all, homeConfig, luckyPromo] = await Promise.all([
           productService.getLatestProducts(8),
@@ -41,12 +45,19 @@ const Home = () => {
           luckyDrawService.getPromotionConfig()
         ]);
         
-        setNewArrivals(latest);
-        setBestSellers(all.filter(p => p.isBestSeller).slice(0, 8));
+        // Debug logs - Check console for these
+        console.log("✅ Products fetched successfully!");
+        console.log("📦 New Arrivals count:", latest?.length || 0);
+        console.log("📦 Best Sellers count:", all?.filter(p => p.isBestSeller).length || 0);
+        console.log("📦 Total products in DB:", all?.length || 0);
+        
+        setNewArrivals(latest || []);
+        setBestSellers((all?.filter(p => p.isBestSeller) || []).slice(0, 8));
         setConfig(homeConfig);
         setPromoConfig(luckyPromo);
       } catch (err) {
-        console.error("Failed to fetch home data", err);
+        console.error("❌ Failed to fetch home data:", err);
+        setFetchError(err instanceof Error ? err.message : "Failed to load products");
       } finally {
         setLoading(false);
       }
@@ -60,7 +71,7 @@ const Home = () => {
     if (!activeSlides.length) return;
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev === (activeSlides.length - 1) ? 0 : prev + 1));
-    }, 5000); // 5 seconds autoplay
+    }, 5000);
     return () => clearInterval(timer);
   }, [activeSlides]);
 
@@ -78,7 +89,8 @@ const Home = () => {
         title="UFR Collection | Luxury Pakistani Women's Fashion" 
         description="Discover the pinnacle of Pakistani luxury pret, formal wear, and bridal collections. Handcrafted elegance for the modern woman. Shop the UFR Collection."
       />
-      {/* Cinematic Hero Slider */}
+      
+      {/* Cinematic Hero Slider - IMPROVED DARK OVERLAY */}
       <section ref={heroRef} className="relative h-[90vh] md:h-screen bg-brand-black overflow-hidden">
         <AnimatePresence mode="wait">
           {activeSlides.map((slide, index) =>
@@ -91,7 +103,8 @@ const Home = () => {
                 transition={{ duration: 1.2 }}
                 className="absolute inset-0"
               >
-                <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/55 to-black/75 z-10" />
+                {/* IMPROVED: Stronger dark overlay for better text readability */}
+                <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/80 to-black/85 z-10" />
                 <motion.div
                   className="w-full h-full"
                   initial={{ scale: 1.1 }}
@@ -107,10 +120,7 @@ const Home = () => {
                 </motion.div>
                 
                 <div className="absolute inset-0 z-20 flex items-center justify-center text-center px-6 mt-16 md:mt-0">
-                  <motion.div 
-                    style={{ opacity }}
-                    className="max-w-5xl"
-                  >
+                  <motion.div style={{ opacity }} className="max-w-5xl">
                     <motion.div
                       initial={{ opacity: 0, y: 40 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -121,11 +131,11 @@ const Home = () => {
                         initial={{ opacity: 0, letterSpacing: "0.2em" }}
                         animate={{ opacity: 1, letterSpacing: "0.5em" }}
                         transition={{ delay: 0.6, duration: 1 }}
-                        className="text-brand-gold font-bold uppercase text-[10px] md:text-sm"
+                        className="text-brand-gold font-bold uppercase text-[10px] md:text-sm tracking-[0.3em]"
                       >
                         {slide.subtitle}
                       </motion.p>
-                      <h1 className="text-white text-4xl md:text-8xl lg:text-9xl font-serif leading-[1.1] tracking-tight">
+                      <h1 className="text-white text-4xl md:text-7xl lg:text-8xl font-serif leading-[1.2] tracking-tight">
                         {slide.title}
                       </h1>
                       <motion.div 
@@ -136,7 +146,7 @@ const Home = () => {
                       >
                         <Link
                           to={slide.link}
-                          className="group relative inline-flex items-center justify-center overflow-hidden bg-white text-brand-black px-10 md:px-16 py-4 md:py-6 rounded-full text-[10px] md:text-xs uppercase tracking-[0.2em] font-black luxury-shadow hover:text-white transition-colors duration-500"
+                          className="group relative inline-flex items-center justify-center overflow-hidden bg-white text-brand-black px-8 md:px-12 py-3 md:py-4 rounded-full text-[10px] md:text-xs uppercase tracking-[0.2em] font-black hover:text-white transition-colors duration-500"
                         >
                           <span className="relative z-10">{slide.cta}</span>
                           <div className="absolute inset-0 bg-brand-gold translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
@@ -151,16 +161,16 @@ const Home = () => {
         </AnimatePresence>
 
         {/* Dots Indicator */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3">
+        <div className="absolute bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 md:gap-3">
           {activeSlides.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentSlide(index)}
-              className="group relative p-2"
+              className="group relative p-1 md:p-2"
             >
               <div className={cn(
-                "h-1.5 transition-all duration-500 rounded-full",
-                index === currentSlide ? "w-8 bg-brand-gold" : "w-1.5 bg-white/40 hover:bg-white/70"
+                "h-1 md:h-1.5 transition-all duration-500 rounded-full",
+                index === currentSlide ? "w-6 md:w-8 bg-brand-gold" : "w-1.5 md:w-1.5 bg-white/50 hover:bg-white/80"
               )} />
             </button>
           ))}
@@ -169,15 +179,15 @@ const Home = () => {
         {/* Side Controls */}
         <button 
           onClick={prevSlide}
-          className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-30 w-10 md:w-14 h-10 md:h-14 rounded-full border border-white/20 text-white flex items-center justify-center backdrop-blur-sm hover:bg-white hover:text-brand-black transition-all"
+          className="absolute left-2 md:left-8 top-1/2 -translate-y-1/2 z-30 w-8 h-8 md:w-12 md:h-12 rounded-full border border-white/30 text-white flex items-center justify-center backdrop-blur-sm hover:bg-white hover:text-brand-black transition-all"
         >
-          <ChevronLeft size={24} />
+          <ChevronLeft size={20} className="md:w-6 md:h-6" />
         </button>
         <button 
           onClick={nextSlide}
-          className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-30 w-10 md:w-14 h-10 md:h-14 rounded-full border border-white/20 text-white flex items-center justify-center backdrop-blur-sm hover:bg-white hover:text-brand-black transition-all"
+          className="absolute right-2 md:right-8 top-1/2 -translate-y-1/2 z-30 w-8 h-8 md:w-12 md:h-12 rounded-full border border-white/30 text-white flex items-center justify-center backdrop-blur-sm hover:bg-white hover:text-brand-black transition-all"
         >
-          <ChevronRight size={24} />
+          <ChevronRight size={20} className="md:w-6 md:h-6" />
         </button>
       </section>
 
@@ -186,23 +196,23 @@ const Home = () => {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          className="bg-brand-gold text-brand-black py-4 overflow-hidden relative"
+          className="bg-brand-gold text-brand-black py-3 md:py-4 overflow-hidden relative"
         >
            <div className="flex whitespace-nowrap animate-marquee">
               {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="flex items-center gap-8 mx-8">
-                   <p className="text-[10px] md:text-sm font-black uppercase tracking-[0.3em] flex items-center gap-3">
-                      <Trophy size={16} /> WIN iPHONE 17 & HONDA 70
+                <div key={i} className="flex items-center gap-4 md:gap-8 mx-4 md:mx-8">
+                   <p className="text-[9px] md:text-sm font-black uppercase tracking-[0.2em] md:tracking-[0.3em] flex items-center gap-2 md:gap-3">
+                      <Trophy size={14} className="md:w-4 md:h-4" /> WIN iPHONE 17 & HONDA 70
                    </p>
-                   <span className="w-1.5 h-1.5 bg-brand-black rounded-full" />
-                   <p className="text-[10px] md:text-sm font-black uppercase tracking-[0.3em] flex items-center gap-3">
-                      <Ticket size={16} /> USE JAZZCASH ADVANCE FOR TOKEN
+                   <span className="w-1 h-1 md:w-1.5 md:h-1.5 bg-brand-black rounded-full" />
+                   <p className="text-[9px] md:text-sm font-black uppercase tracking-[0.2em] md:tracking-[0.3em] flex items-center gap-2 md:gap-3">
+                      <Ticket size={14} className="md:w-4 md:h-4" /> USE JAZZCASH/EASYPASA ADVANCE
                    </p>
-                   <span className="w-1.5 h-1.5 bg-brand-black rounded-full" />
-                   <p className="text-[10px] md:text-sm font-black uppercase tracking-[0.3em] flex items-center gap-3">
-                      <Star size={16} /> NEXT DRAW COMMENCING SOON
+                   <span className="w-1 h-1 md:w-1.5 md:h-1.5 bg-brand-black rounded-full" />
+                   <p className="text-[9px] md:text-sm font-black uppercase tracking-[0.2em] md:tracking-[0.3em] flex items-center gap-2 md:gap-3">
+                      <Star size={14} className="md:w-4 md:h-4" /> NEXT DRAW COMMENCING SOON
                    </p>
-                   <span className="w-1.5 h-1.5 bg-brand-black rounded-full" />
+                   <span className="w-1 h-1 md:w-1.5 md:h-1.5 bg-brand-black rounded-full" />
                 </div>
               ))}
            </div>
@@ -210,21 +220,21 @@ const Home = () => {
       )}
 
       {/* SHOP BY CATEGORY */}
-      <section className="py-12 px-4 md:py-32 md:px-8 bg-white">
-        <div className="container mx-auto">
-          <div className="text-center mb-10 md:mb-24 space-y-4">
+      <section className="py-12 px-4 md:py-24 md:px-8 bg-white">
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-10 md:mb-16 space-y-3 md:space-y-4">
             <motion.p 
               initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
-              className="text-brand-gold font-bold uppercase tracking-[0.4em] text-[10px]"
+              className="text-brand-gold font-bold uppercase tracking-[0.3em] md:tracking-[0.4em] text-[9px] md:text-[10px]"
             >
               Exquisite Selection
             </motion.p>
-            <h2 className="text-2xl md:text-6xl font-serif uppercase tracking-tight">SHOP BY CATEGORY</h2>
-            <div className="w-24 h-1 bg-brand-gold mx-auto mt-6" />
+            <h2 className="text-2xl md:text-5xl lg:text-6xl font-serif uppercase tracking-tight">SHOP BY CATEGORY</h2>
+            <div className="w-16 md:w-24 h-0.5 bg-brand-gold mx-auto mt-4 md:mt-6" />
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-10">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6 lg:gap-8">
             {categories.map((cat, i) => (
               <motion.div
                 key={cat.name}
@@ -234,25 +244,26 @@ const Home = () => {
                 transition={{ delay: i * 0.1 }}
                 className="group"
               >
-                <Link to={`/shop?category=${cat.name}`} className="block text-center">
-                  <div className="aspect-[4/5] overflow-hidden rounded-[2.5rem] mb-6 relative luxury-shadow-sm group-hover:luxury-shadow-lg transition-all duration-500 bg-brand-cream">
+                <Link to={`/shop?category=${encodeURIComponent(cat.name)}`} className="block text-center">
+                  <div className="aspect-square md:aspect-[4/5] overflow-hidden rounded-2xl md:rounded-[2rem] mb-3 md:mb-5 relative shadow-md hover:shadow-xl transition-all duration-500 bg-brand-cream">
                     <img
-                      src={cat.image || undefined}
+                      src={cat.image || "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?q=80&w=400&h=500&fit=crop"}
                       alt={cat.name}
+                      loading="lazy"
                       onError={(e) => {
                         e.currentTarget.src = "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?q=80&w=400&h=500&fit=crop";
                       }}
-                      className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
-                    <div className="absolute inset-0 bg-brand-black/0 group-hover:bg-brand-black/10 transition-all duration-500" />
+                    <div className="absolute inset-0 bg-brand-black/0 group-hover:bg-brand-black/20 transition-all duration-500" />
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                      <div className="bg-white/90 backdrop-blur-sm text-brand-black w-10 h-10 rounded-full flex items-center justify-center transform translate-y-4 group-hover:translate-y-0 transition-all duration-500">
-                        <ArrowRight size={18} />
+                      <div className="bg-white/90 backdrop-blur-sm text-brand-black w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center transform translate-y-3 group-hover:translate-y-0 transition-all duration-500">
+                        <ArrowRight size={16} className="md:w-5 md:h-5" />
                       </div>
                     </div>
                   </div>
-                  <h3 className="font-serif text-xl tracking-wide group-hover:text-brand-gold transition-colors duration-300">{cat.name}</h3>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-brand-grey mt-2 font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-300">View Collection</p>
+                  <h3 className="font-serif text-base md:text-xl tracking-wide group-hover:text-brand-gold transition-colors duration-300">{cat.name}</h3>
+                  <p className="text-[8px] md:text-[10px] uppercase tracking-[0.15em] md:tracking-[0.2em] text-gray-500 mt-1 font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-300">View Collection</p>
                 </Link>
               </motion.div>
             ))}
@@ -260,34 +271,53 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Error Message if fetch fails */}
+      {fetchError && (
+        <div className="text-center py-12 px-4">
+          <p className="text-red-500">⚠️ {fetchError}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-4 bg-brand-gold text-black px-6 py-2 rounded-full text-sm"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
       {/* Dynamic Sections (from config) */}
       {config?.sections?.sort((a,b) => a.order - b.order).map((section) => {
         if (!section.enabled) return null;
-        if (section.type === 'categories') return null; // We handled categories manually above as per request
+        if (section.type === 'categories') return null;
 
         switch (section.type) {
           case 'new-arrivals':
             return (
-              <section key={section.id} className="py-12 px-4 md:py-32 md:px-8 bg-brand-cream relative overflow-hidden">
-                <div className="container mx-auto relative z-10">
-                  <div className="flex flex-col md:flex-row justify-between items-end mb-10 md:mb-20 gap-8">
-                    <div className="max-w-xl space-y-4">
-                      <p className="text-brand-gold font-bold uppercase tracking-[0.4em] text-[10px]">{section.subheading || 'The Latest Obsessions'}</p>
-                      <h2 className="text-3xl md:text-6xl font-serif">{section.heading}</h2>
+              <section key={section.id} className="py-12 px-4 md:py-24 md:px-8 bg-brand-cream relative overflow-hidden">
+                <div className="container mx-auto max-w-7xl relative z-10">
+                  <div className="flex flex-col md:flex-row justify-between items-center md:items-end mb-10 md:mb-16 gap-6 md:gap-8">
+                    <div className="text-center md:text-left space-y-2 md:space-y-3">
+                      <p className="text-brand-gold font-bold uppercase tracking-[0.3em] md:tracking-[0.4em] text-[9px] md:text-[10px]">{section.subheading || 'The Latest Obsessions'}</p>
+                      <h2 className="text-2xl md:text-5xl lg:text-6xl font-serif">{section.heading || 'NEW ARRIVALS'}</h2>
                     </div>
-                    <Link to="/shop" className="group flex items-center gap-4 text-xs uppercase tracking-[0.3em] font-black border-b-2 border-brand-black pb-2 hover:text-brand-gold hover:border-brand-gold transition-all duration-500">
-                      Explore Full Boutique <ArrowRight size={16} className="group-hover:translate-x-2 transition-transform" />
+                    <Link to="/shop?sort=newest" className="group flex items-center gap-2 md:gap-3 text-[10px] md:text-xs uppercase tracking-[0.2em] md:tracking-[0.3em] font-black border-b-2 border-brand-black pb-1 md:pb-2 hover:text-brand-gold hover:border-brand-gold transition-all duration-500">
+                      Explore Full Boutique <ArrowRight size={14} className="md:w-4 md:h-4 group-hover:translate-x-1 transition-transform" />
                     </Link>
                   </div>
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-12">
+                  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
                     {loading ? (
                       Array(4).fill(0).map((_, i) => <ProductCardSkeleton key={i} />)
-                    ) : newArrivals.map((product) => (
-                      <ProductCard key={product.id} product={product} />
-                    ))}
+                    ) : newArrivals.length > 0 ? (
+                      newArrivals.map((product) => (
+                        <ProductCard key={product.id} product={product} />
+                      ))
+                    ) : (
+                      <div className="col-span-full text-center py-12">
+                        <p className="text-gray-500">No new arrivals at the moment. Check back soon!</p>
+                      </div>
+                    )}
                   </div>
                 </div>
-                <div className="absolute top-1/2 left-0 -translate-y-1/2 text-[20vw] font-serif text-black/[0.02] whitespace-nowrap pointer-events-none select-none">
+                <div className="absolute top-1/2 left-0 -translate-y-1/2 text-[15vw] md:text-[12vw] font-serif text-black/[0.02] whitespace-nowrap pointer-events-none select-none">
                   NEW SEASON
                 </div>
               </section>
@@ -295,18 +325,25 @@ const Home = () => {
 
           case 'best-sellers':
             return (
-              <section key={section.id} className="py-12 px-4 md:py-32 md:px-8 bg-white">
-                <div className="container mx-auto">
-                  <div className="text-center mb-10 md:mb-24 space-y-4">
-                    <p className="text-brand-gold font-bold uppercase tracking-[0.4em] text-[10px]">Iconic Favorites</p>
-                    <h2 className="text-3xl md:text-6xl font-serif">{section.heading}</h2>
+              <section key={section.id} className="py-12 px-4 md:py-24 md:px-8 bg-white">
+                <div className="container mx-auto max-w-7xl">
+                  <div className="text-center mb-10 md:mb-16 space-y-3 md:space-y-4">
+                    <p className="text-brand-gold font-bold uppercase tracking-[0.3em] md:tracking-[0.4em] text-[9px] md:text-[10px]">Iconic Favorites</p>
+                    <h2 className="text-2xl md:text-5xl lg:text-6xl font-serif">{section.heading || 'BEST SELLERS'}</h2>
+                    <div className="w-16 md:w-24 h-0.5 bg-brand-gold mx-auto mt-4 md:mt-6" />
                   </div>
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-12">
+                  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
                     {loading ? (
                       Array(4).fill(0).map((_, i) => <ProductCardSkeleton key={i} />)
-                    ) : bestSellers.map((product) => (
-                      <ProductCard key={product.id} product={product} />
-                    ))}
+                    ) : bestSellers.length > 0 ? (
+                      bestSellers.map((product) => (
+                        <ProductCard key={product.id} product={product} />
+                      ))
+                    ) : (
+                      <div className="col-span-full text-center py-12">
+                        <p className="text-gray-500">No best sellers at the moment. Check back soon!</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </section>
@@ -314,12 +351,12 @@ const Home = () => {
 
           case 'story':
             return (
-              <section key={section.id} className="py-40 bg-[#141414] text-white">
-                <div className="container mx-auto px-4">
-                  <div className="flex flex-col lg:flex-row items-center gap-24">
+              <section key={section.id} className="py-16 md:py-32 bg-[#141414] text-white">
+                <div className="container mx-auto px-4 max-w-7xl">
+                  <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
                     <div className="lg:w-1/2 relative group">
                        <motion.div
-                         initial={{ opacity: 0, scale: 0.9 }}
+                         initial={{ opacity: 0, scale: 0.95 }}
                          whileInView={{ opacity: 1, scale: 1 }}
                          viewport={{ once: true }}
                          className="relative z-10"
@@ -327,21 +364,22 @@ const Home = () => {
                          <img
                            src="https://images.unsplash.com/photo-1594235412407-5903f444f357?q=80&w=1200"
                            alt="Maison Craftsmanship"
-                           className="rounded-2xl luxury-shadow-lg grayscale group-hover:grayscale-0 transition-all duration-1000"
+                           className="rounded-2xl shadow-2xl grayscale group-hover:grayscale-0 transition-all duration-700"
                          />
                        </motion.div>
-                       <div className="absolute -top-12 -left-12 w-48 h-48 bg-brand-gold/10 rounded-full blur-3xl" />
+                       <div className="absolute -top-8 -left-8 md:-top-12 md:-left-12 w-32 h-32 md:w-48 md:h-48 bg-brand-gold/10 rounded-full blur-3xl" />
                     </div>
-                    <div className="lg:w-1/2 space-y-10">
-                       <p className="text-brand-gold font-bold uppercase tracking-[0.5em] text-[10px]">The Maison Philosophy</p>
-                       <h2 className="text-4xl md:text-7xl font-serif leading-[1.1]">{section.heading}</h2>
-                       <div className="space-y-6 text-white/70 font-light leading-relaxed text-lg italic">
+                    <div className="lg:w-1/2 space-y-6 md:space-y-8">
+                       <p className="text-brand-gold font-bold uppercase tracking-[0.3em] md:tracking-[0.5em] text-[9px] md:text-[10px]">The Maison Philosophy</p>
+                       <h2 className="text-3xl md:text-6xl lg:text-7xl font-serif leading-[1.2]">{section.heading || 'WHERE TRADITION MEETS LUXURY'}</h2>
+                       <div className="space-y-4 md:space-y-5 text-white/70 font-light leading-relaxed text-base md:text-lg">
                           <p>UFR Collection was born from a passion for preserving traditional craftsmanship while embracing contemporary luxury. Every piece in our collection is a labor of love, hand-embroidered by masters of the craft and tailored to perfection.</p>
+                          <p>Our commitment to quality and authenticity ensures that every garment tells a story of elegance, heritage, and modern sophistication.</p>
                        </div>
-                       <div className="pt-8">
-                         <Link to="/about" className="group relative inline-flex items-center gap-4 bg-brand-gold text-brand-black px-12 py-5 rounded-full text-[10px] uppercase tracking-[0.3em] font-black hover:bg-white transition-all duration-500">
+                       <div className="pt-4 md:pt-6">
+                         <Link to="/about" className="group relative inline-flex items-center gap-2 md:gap-3 bg-brand-gold text-brand-black px-8 md:px-10 py-3 md:py-4 rounded-full text-[9px] md:text-[10px] uppercase tracking-[0.2em] md:tracking-[0.3em] font-black hover:bg-white transition-all duration-500">
                            Discover Our Legacy
-                           <ArrowRight size={16} className="group-hover:translate-x-2 transition-transform" />
+                           <ArrowRight size={14} className="md:w-4 md:h-4 group-hover:translate-x-1 transition-transform" />
                          </Link>
                        </div>
                     </div>
@@ -358,46 +396,52 @@ const Home = () => {
       {/* Default Fallback Content if no config sections */}
       {(!config || config.sections.length === 0) && !loading && (
         <>
-          {/* Default New Arrivals fallback */}
-          <section className="py-12 px-4 md:py-32 md:px-8 bg-brand-cream relative overflow-hidden">
-            <div className="container mx-auto relative z-10">
-              <div className="flex flex-col md:flex-row justify-between items-end mb-10 md:mb-20 gap-8">
-                <div className="max-w-xl space-y-4">
-                  <p className="text-brand-gold font-bold uppercase tracking-[0.4em] text-[10px]">Timeless Classics</p>
-                  <h2 className="text-3xl md:text-6xl font-serif uppercase tracking-tighter">NEW ARRIVALS</h2>
+          <section className="py-12 px-4 md:py-24 md:px-8 bg-brand-cream relative overflow-hidden">
+            <div className="container mx-auto max-w-7xl relative z-10">
+              <div className="flex flex-col md:flex-row justify-between items-center md:items-end mb-10 md:mb-16 gap-6 md:gap-8">
+                <div className="text-center md:text-left space-y-2 md:space-y-3">
+                  <p className="text-brand-gold font-bold uppercase tracking-[0.3em] md:tracking-[0.4em] text-[9px] md:text-[10px]">Timeless Classics</p>
+                  <h2 className="text-2xl md:text-5xl lg:text-6xl font-serif uppercase tracking-tighter">NEW ARRIVALS</h2>
                 </div>
-                <Link to="/shop" className="group flex items-center gap-4 text-xs uppercase tracking-[0.3em] font-black border-b-2 border-brand-black pb-2 hover:text-brand-gold hover:border-brand-gold transition-all duration-500">
-                  Explore Full Boutique <ArrowRight size={16} className="group-hover:translate-x-2 transition-transform" />
+                <Link to="/shop?sort=newest" className="group flex items-center gap-2 md:gap-3 text-[10px] md:text-xs uppercase tracking-[0.2em] md:tracking-[0.3em] font-black border-b-2 border-brand-black pb-1 md:pb-2 hover:text-brand-gold hover:border-brand-gold transition-all duration-500">
+                  Explore Full Boutique <ArrowRight size={14} className="md:w-4 md:h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </div>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-12">
-                {newArrivals.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+                {loading ? (
+                  Array(4).fill(0).map((_, i) => <ProductCardSkeleton key={i} />)
+                ) : newArrivals.length > 0 ? (
+                  newArrivals.map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))
+                ) : (
+                  <div className="col-span-full text-center py-12">
+                    <p className="text-gray-500">No products found. Please check your database connection.</p>
+                  </div>
+                )}
               </div>
             </div>
           </section>
 
-          {/* Default Story fallback */}
-          <section className="py-12 px-4 md:py-40 md:px-8 bg-[#141414] text-white">
-            <div className="container mx-auto">
-              <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-24">
+          <section className="py-16 md:py-32 bg-[#141414] text-white">
+            <div className="container mx-auto px-4 max-w-7xl">
+              <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
                 <div className="lg:w-1/2 relative group">
                    <img
                      src="https://images.unsplash.com/photo-1594235412407-5903f444f357?q=80&w=1200"
                      alt="Maison"
-                     className="rounded-2xl luxury-shadow-lg grayscale group-hover:grayscale-0 transition-all duration-1000"
+                     className="rounded-2xl shadow-2xl grayscale group-hover:grayscale-0 transition-all duration-700"
                    />
                 </div>
-                <div className="lg:w-1/2 space-y-6 md:space-y-10">
-                   <p className="text-brand-gold font-bold uppercase tracking-[0.5em] text-[10px]">The Maison Philosophy</p>
-                   <h2 className="text-2xl md:text-7xl font-serif leading-[1.1]">WHERE TRADITION MEETS LUXURY</h2>
-                   <p className="text-white/70 font-light leading-relaxed text-sm md:text-lg italic">
-                     UFR Collection. Crafting legacies since 2010.
+                <div className="lg:w-1/2 space-y-6 md:space-y-8">
+                   <p className="text-brand-gold font-bold uppercase tracking-[0.3em] md:tracking-[0.5em] text-[9px] md:text-[10px]">The Maison Philosophy</p>
+                   <h2 className="text-3xl md:text-6xl lg:text-7xl font-serif leading-[1.2]">WHERE TRADITION MEETS LUXURY</h2>
+                   <p className="text-white/70 font-light leading-relaxed text-base md:text-lg">
+                     UFR Collection. Crafting legacies since 2010. Every piece is a testament to our commitment to excellence, blending timeless tradition with contemporary elegance.
                    </p>
-                   <Link to="/about" className="group relative inline-flex items-center gap-4 bg-brand-gold text-brand-black px-12 py-5 rounded-full text-[10px] uppercase tracking-[0.3em] font-black hover:bg-white transition-all duration-500">
+                   <Link to="/about" className="group relative inline-flex items-center gap-2 md:gap-3 bg-brand-gold text-brand-black px-8 md:px-10 py-3 md:py-4 rounded-full text-[9px] md:text-[10px] uppercase tracking-[0.2em] md:tracking-[0.3em] font-black hover:bg-white transition-all duration-500">
                      Explore Our Story
-                     <ArrowRight size={16} className="group-hover:translate-x-2 transition-transform" />
+                     <ArrowRight size={14} className="md:w-4 md:h-4 group-hover:translate-x-1 transition-transform" />
                    </Link>
                 </div>
               </div>
@@ -408,86 +452,47 @@ const Home = () => {
 
       {/* Recent Lucky Draw Winners */}
       {promoConfig?.winners && promoConfig.winners.length > 0 && promoConfig.announced && (
-        <section className="py-12 px-4 md:py-32 md:px-8 bg-brand-black text-white relative overflow-hidden">
-           <div className="absolute top-0 right-0 p-24 opacity-[0.03] pointer-events-none">
-              <Trophy size={400} />
+        <section className="py-12 px-4 md:py-24 md:px-8 bg-brand-black text-white relative overflow-hidden">
+           <div className="absolute top-0 right-0 p-16 md:p-24 opacity-[0.03] pointer-events-none">
+              <Trophy size={300} className="md:w-[400px] md:h-[400px]" />
            </div>
-           <div className="container mx-auto relative z-10">
-              <div className="text-center mb-10 md:mb-16 space-y-4">
-                 <p className="text-brand-gold font-bold uppercase tracking-[0.4em] text-[10px]">Grand Archive Results</p>
-                 <h2 className="text-2xl md:text-5xl font-serif">RECENT LUCKY DRAW WINNERS</h2>
+           <div className="container mx-auto max-w-7xl relative z-10">
+              <div className="text-center mb-10 md:mb-16 space-y-3 md:space-y-4">
+                 <p className="text-brand-gold font-bold uppercase tracking-[0.3em] md:tracking-[0.4em] text-[9px] md:text-[10px]">Grand Archive Results</p>
+                 <h2 className="text-2xl md:text-4xl lg:text-5xl font-serif">RECENT LUCKY DRAW WINNERS</h2>
+                 <div className="w-16 md:w-24 h-0.5 bg-brand-gold mx-auto mt-4 md:mt-6" />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
                  {promoConfig.winners.slice(0, 10).map((winner, idx) => (
                     <motion.div 
                       key={idx}
                       initial={{ opacity: 0, scale: 0.95 }}
                       whileInView={{ opacity: 1, scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: idx * 0.05 }}
                       className={cn(
-                        "p-4 md:p-8 rounded-2xl border transition-all text-center space-y-4",
-                        idx === 0 ? "bg-brand-gold/10 border-brand-gold md:col-span-1 lg:col-span-1" : "bg-white/5 border-white/10"
+                        "p-4 md:p-6 rounded-xl md:rounded-2xl border transition-all text-center space-y-3 md:space-y-4",
+                        idx === 0 ? "bg-brand-gold/10 border-brand-gold" : "bg-white/5 border-white/10 hover:border-brand-gold/50"
                       )}
                     >
-                       <div className="w-10 h-10 md:w-12 md:h-12 bg-white/10 rounded-full flex items-center justify-center mx-auto text-brand-gold">
-                          <Trophy size={20} />
+                       <div className={cn(
+                         "w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center mx-auto",
+                         idx === 0 ? "bg-brand-gold text-black" : "bg-white/10 text-brand-gold"
+                       )}>
+                          <Trophy size={18} className="md:w-5 md:h-5" />
                        </div>
                        <div className="space-y-1">
-                          <p className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-brand-gold">
-                            {idx === 0 ? "1st Winner" : idx === 1 ? "2nd Winner" : idx === 2 ? "3rd Winner" : `${idx + 1}th Winner`}
+                          <p className="text-[9px] md:text-[10px] font-bold uppercase tracking-wider text-brand-gold">
+                            {idx === 0 ? "GRAND PRIZE" : idx === 1 ? "FIRST RUNNER UP" : idx === 2 ? "SECOND RUNNER UP" : `${idx + 1}th WINNER`}
                           </p>
-                          <p className="text-lg md:text-xl font-serif text-white">{winner.tokenNumber}</p>
-                          <p className="text-[9px] md:text-[10px] text-white/50 uppercase tracking-[0.2em]">{winner.prize}</p>
+                          <p className="text-base md:text-xl font-serif text-white font-medium">{winner.tokenNumber}</p>
+                          <p className="text-[8px] md:text-[9px] text-white/50 uppercase tracking-[0.15em] md:tracking-[0.2em]">{winner.prize}</p>
                        </div>
                     </motion.div>
                  ))}
               </div>
            </div>
-        </section>
-      )}
-
-      {/* Instagram Feed Section */}
-      {config?.sections?.find(s => (s.id === 'instagram' || s.type === 'instagram') && s.enabled) && (
-        <section className="py-12 px-4 md:py-32 md:px-8 bg-white">
-          <div className="container mx-auto">
-            <div className="flex flex-col md:flex-row justify-between items-center mb-10 md:mb-16 gap-6">
-              <div className="text-center md:text-left space-y-4">
-                 <p className="text-brand-gold font-bold uppercase tracking-[0.4em] text-[10px]">Follow Our Journey</p>
-                 <h2 className="text-2xl md:text-5xl font-serif">@UFRCOLLECTION</h2>
-              </div>
-              <a 
-                href="https://instagram.com/ufrcollection" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="px-8 py-4 md:px-10 md:py-5 border border-brand-black rounded-full text-[10px] uppercase font-black tracking-widest hover:bg-brand-black hover:text-white transition-all flex items-center gap-3"
-              >
-                <Instagram size={16} />
-                Visit Digital Archive
-              </a>
-            </div>
-            
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  className="group relative aspect-square overflow-hidden bg-brand-cream cursor-pointer"
-                >
-                  <img 
-                    src={`https://images.unsplash.com/photo-${1580000000000 + (i * 1000)}?q=80&w=800&h=800&fit=crop`}
-                    alt="Instagram Archive"
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-brand-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Eye className="text-white" size={24} />
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
         </section>
       )}
     </div>

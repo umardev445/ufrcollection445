@@ -341,8 +341,8 @@ const Navbar = () => {
               <div className="mt-20 pt-8 border-t border-brand-beige">
                 <p className="text-[10px] uppercase tracking-widest text-brand-grey mb-4">Support</p>
                 <div className="flex flex-col gap-3">
-                  <a href="tel:+923001234567" className="text-sm">+92 300 1234567</a>
-                  <a href="mailto:support@ufrcollection.com" className="text-sm">support@ufrcollection.com</a>
+                  <a href="tel:+923001234567" className="text-sm">+92 449143446</a>
+                  <a href="mailto:support@ufrcollection.com" className="text-sm">ufrcollection@gmail.com</a>
                 </div>
               </div>
             </motion.div>

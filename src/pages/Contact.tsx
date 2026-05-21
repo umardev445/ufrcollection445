@@ -39,7 +39,7 @@ const Contact = () => {
                      </div>
                      <div className="text-left">
                         <p className="text-[10px] uppercase tracking-widest font-bold text-brand-grey">Call Us</p>
-                        <p className="font-serif text-lg text-left">+92 300 1234567</p>
+                        <p className="font-serif text-lg text-left">+92 3449143446</p>
                      </div>
                   </div>
                   <div className="flex gap-6 items-center">
@@ -48,7 +48,7 @@ const Contact = () => {
                      </div>
                      <div className="text-left">
                         <p className="text-[10px] uppercase tracking-widest font-bold text-brand-grey">Email Support</p>
-                        <p className="font-serif text-lg text-left">concierge@ufrcollection.com</p>
+                        <p className="font-serif text-lg text-left">ufrcollection@gmail.com</p>
                      </div>
                   </div>
                   <div className="flex gap-6 items-center">
@@ -126,7 +126,7 @@ const Contact = () => {
                <div className="mt-12 pt-12 border-t border-brand-beige flex flex-col items-center gap-6">
                   <p className="text-[10px] uppercase tracking-widest font-bold text-brand-grey">Prefer Instant Chat?</p>
                   <a
-                    href="https://wa.me/923001234567"
+                    href="https://wa.me/923128255311"
                     target="_blank"
                     className="flex items-center gap-3 bg-[#25D366] text-white px-8 py-3 rounded-full text-sm font-bold shadow-lg hover:scale-105 transition-all"
                   >

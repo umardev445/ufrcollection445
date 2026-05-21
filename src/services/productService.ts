@@ -6,23 +6,26 @@ export interface Product {
   id: string;
   name: string;
   description: string;
-  price: number;
-  salePrice?: number;
   category: string;
+  price: number;
+  salePrice: number | null;
   images: string[];
   sizes: string[];
+  sizeType?: string;           // NEW: For "Unstitched", "Stitched", etc.
   colors: string[];
+  fabric: string;
+  highlights?: string[];       // NEW: Array of product highlights
   stock: number;
-  isNew?: boolean;
-  isBestSeller?: boolean;
-  featured?: boolean;
-  collectionIds?: string[];
-  discount?: number;
-  offerLabel?: string;
+  featured: boolean;
+  isNew: boolean;
+  isBestSeller: boolean;
+  sku?: string;                // NEW: Product SKU code
   rating: number;
   reviewsCount: number;
-  createdAt: any;
-  updatedAt: any;
+  createdAt?: any;
+  updatedAt?: any;
+  collectionIds?: string[];
+  offerLabel?: string;
 }
 
 export interface Review {
