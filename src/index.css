@@ -14,7 +14,17 @@
   --color-brand-black: #1A1A1A;
   --color-brand-black-light: #2C2C2C;
   --color-brand-grey: #6B6B6B;
+/* FORCE GOLD COLOR FOR CONTRAST - EMERGENCY FIX */
+.text-brand-gold, 
+p.text-brand-gold,
+h2.text-brand-gold,
+span.text-brand-gold {
+  color: #8B6508 !important;
+}
 
+.bg-brand-gold {
+  background-color: #8B6508 !important;
+}
   --radius-luxury: 12px;
   --radius-luxury-lg: 24px;
   --shadow-luxury: 0 4px 12px rgba(0,0,0,0.05);

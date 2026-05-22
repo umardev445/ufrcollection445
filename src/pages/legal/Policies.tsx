@@ -99,3 +99,10 @@ export const TermsConditions = () => (
     </p>
   </PolicyLayout>
 );
+// At the bottom of the file, add default export
+export default {
+  ReturnPolicy,
+  ShippingPolicy,
+  PrivacyPolicy,
+  TermsConditions
+};
