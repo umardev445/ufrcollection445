@@ -13,7 +13,7 @@
   --color-brand-gold-dark: #B8960F;
   --color-brand-black: #1A1A1A;
   --color-brand-black-light: #2C2C2C;
-  --color-brand-grey: #2C2C2C;
+  --color-brand-grey: #6B6B6B;
 
   --radius-luxury: 12px;
   --radius-luxury-lg: 24px;
@@ -53,5 +53,5 @@
 }
 
 .gold-gradient {
-  background: linear-gradient(135deg, #D4AF37 0%, #F5F0E8 50%, #D4AF37 100%);
+  background: linear-gradient(135deg, #B8860B 0%, #F5F0E8 50%, #B8860B 100%);
 }
