@@ -27,6 +27,8 @@ const ProductManagement = () => {
     images: ['', ''],
     sizes: 'S, M, L, XL',
     sizeType: '',
+    reviewsCount: 0,
+     rating: 0,
     colors: 'Beige, Black',
     fabric: 'Chiffon',
     highlights: ['', '', ''],

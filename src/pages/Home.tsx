@@ -38,21 +38,34 @@ const Home = () => {
       setLoading(true);
       setFetchError(null);
       try {
-        const [latest, all, homeConfig, luckyPromo] = await Promise.all([
-          productService.getLatestProducts(8),
-          productService.getAllProducts(),
-          homepageService.getConfig(),
-          luckyDrawService.getPromotionConfig()
-        ]);
-        
-        // Debug logs - Check console for these
-        console.log("✅ Products fetched successfully!");
-        console.log("📦 New Arrivals count:", latest?.length || 0);
-        console.log("📦 Best Sellers count:", all?.filter(p => p.isBestSeller).length || 0);
-        console.log("📦 Total products in DB:", all?.length || 0);
-        
-        setNewArrivals(latest || []);
-        setBestSellers((all?.filter(p => p.isBestSeller) || []).slice(0, 8));
+       const [latest, all, homeConfig, luckyPromo] = await Promise.all([
+  productService.getLatestProducts(8),
+  productService.getAllProducts(),
+  homepageService.getConfig(),
+  luckyDrawService.getPromotionConfig()
+]);
+
+// ✅ FIX: Ensure reviewsCount is a number
+const fixedLatest = (latest || []).map(p => ({
+  ...p,
+  reviewsCount: Number(p.reviewsCount) || 0,
+  rating: Number(p.rating) || 0
+}));
+
+const fixedAll = (all || []).map(p => ({
+  ...p,
+  reviewsCount: Number(p.reviewsCount) || 0,
+  rating: Number(p.rating) || 0
+}));
+
+// Debug logs
+console.log("✅ Products fetched successfully!");
+console.log("📦 New Arrivals count:", fixedLatest.length);
+console.log("📦 Best Sellers count:", fixedAll.filter(p => p.isBestSeller).length);
+console.log("📦 Total products in DB:", fixedAll.length);
+
+setNewArrivals(fixedLatest);
+setBestSellers((fixedAll.filter(p => p.isBestSeller) || []).slice(0, 8));
         setConfig(homeConfig);
         setPromoConfig(luckyPromo);
       } catch (err) {

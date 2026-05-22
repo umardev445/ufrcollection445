@@ -199,7 +199,9 @@ const ProductCard: React.FC<{ product: Product, onQuickView?: (product: Product)
                 className={cn(i < Math.floor(product.rating) ? "text-brand-gold fill-brand-gold" : "text-brand-beige fill-brand-beige")}
               />
             ))}
-            <span className="text-[9px] text-brand-grey ml-1 tracking-tighter">({product.reviewsCount} reviews)</span>
+          <span className="text-[9px] text-brand-grey ml-1 tracking-tighter">
+  ({Number(product.reviewsCount) || 0} reviews)
+</span>
           </div>
         </div>
       </Link>

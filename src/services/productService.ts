@@ -1,4 +1,4 @@
-import { collection, getDocs, getDoc, doc, query, orderBy, limit, where, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, getDoc, doc, query, orderBy, limit, where, addDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { db } from './firebase';
 import { handleFirestoreError, OperationType } from '../utils/firestore';
 
@@ -11,15 +11,15 @@ export interface Product {
   salePrice: number | null;
   images: string[];
   sizes: string[];
-  sizeType?: string;           // NEW: For "Unstitched", "Stitched", etc.
+  sizeType?: string;
   colors: string[];
   fabric: string;
-  highlights?: string[];       // NEW: Array of product highlights
+  highlights?: string[];
   stock: number;
   featured: boolean;
   isNew: boolean;
   isBestSeller: boolean;
-  sku?: string;                // NEW: Product SKU code
+  sku?: string;
   rating: number;
   reviewsCount: number;
   createdAt?: any;
@@ -44,7 +44,12 @@ export const productService = {
     try {
       const q = query(collection(db, COLLECTION), orderBy('createdAt', 'desc'));
       const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+      return snapshot.docs.map(doc => ({ 
+        id: doc.id, 
+        ...doc.data(),
+        reviewsCount: Number(doc.data().reviewsCount) || 0,
+        rating: Number(doc.data().rating) || 0
+      } as Product));
     } catch (error) {
       handleFirestoreError(error, OperationType.GET, COLLECTION);
       return [];
@@ -59,7 +64,12 @@ export const productService = {
         limit(count)
       );
       const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+      return snapshot.docs.map(doc => ({ 
+        id: doc.id, 
+        ...doc.data(),
+        reviewsCount: Number(doc.data().reviewsCount) || 0,
+        rating: Number(doc.data().rating) || 0
+      } as Product));
     } catch (error) {
       handleFirestoreError(error, OperationType.GET, COLLECTION);
       return [];
@@ -71,7 +81,12 @@ export const productService = {
       const docRef = doc(db, COLLECTION, id);
       const snapshot = await getDoc(docRef);
       if (snapshot.exists()) {
-        return { id: snapshot.id, ...snapshot.data() } as Product;
+        return { 
+          id: snapshot.id, 
+          ...snapshot.data(),
+          reviewsCount: Number(snapshot.data().reviewsCount) || 0,
+          rating: Number(snapshot.data().rating) || 0
+        } as Product;
       }
       return null;
     } catch (error) {
@@ -88,7 +103,12 @@ export const productService = {
         limit(5)
       );
       const snapshot = await getDocs(q);
-      let products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+      let products = snapshot.docs.map(doc => ({ 
+        id: doc.id, 
+        ...doc.data(),
+        reviewsCount: Number(doc.data().reviewsCount) || 0,
+        rating: Number(doc.data().rating) || 0
+      } as Product));
       if (excludeId) {
         products = products.filter(p => p.id !== excludeId);
       }
@@ -119,6 +139,12 @@ export const productService = {
         createdAt: serverTimestamp()
       };
       const docRef = await addDoc(reviewsRef, newReview);
+      
+      // Update reviewsCount in product
+      const reviewsSnap = await getDocs(reviewsRef);
+      const productRef = doc(db, COLLECTION, productId);
+      await updateDoc(productRef, { reviewsCount: reviewsSnap.size });
+      
       return { id: docRef.id, ...newReview };
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, `${COLLECTION}/${productId}/reviews`);
