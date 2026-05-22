@@ -29,7 +29,6 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Handle click outside search to close it
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
@@ -40,7 +39,6 @@ const Navbar = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Real-time search with debounce
   useEffect(() => {
     if (!searchQuery.trim()) {
       setSearchResults([]);
@@ -102,7 +100,7 @@ const Navbar = () => {
                 <Menu size={24} />
               </button>
               
-              <Link to="/" className="flex items-center gap-2">
+              <Link to="/" className="flex items-center gap-2" aria-label="UFR Collection Home">
                 <span className="text-2xl font-serif font-bold tracking-tighter">
                   U<span className="text-brand-gold italic">F</span>R
                 </span>
@@ -126,12 +124,12 @@ const Navbar = () => {
               ))}
             </nav>
 
-            {/* Right side: Mobile-only Icons (always visible & 44px touch target & gap-3) */}
+            {/* Right side: Mobile-only Icons */}
             <div className="flex items-center gap-1 sm:gap-2 md:hidden">
               <button 
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
                 className="w-11 h-11 flex items-center justify-center hover:text-brand-gold transition-colors text-brand-black"
-                aria-label="Toggle search info"
+                aria-label="Search products"
                 style={{ width: '44px', height: '44px' }}
               >
                 <Search size={20} />
@@ -140,7 +138,7 @@ const Navbar = () => {
               <Link 
                 to="/profile" 
                 className="w-11 h-11 flex items-center justify-center hover:text-brand-gold transition-colors text-brand-black"
-                aria-label="Client account dossier"
+                aria-label="My Account"
                 style={{ width: '44px', height: '44px' }}
               >
                 <User size={20} />
@@ -149,7 +147,7 @@ const Navbar = () => {
               <Link 
                 to="/wishlist" 
                 className="relative w-11 h-11 flex items-center justify-center hover:text-brand-gold transition-colors text-brand-black"
-                aria-label="Private customer wishlist"
+                aria-label="My Wishlist"
                 style={{ width: '44px', height: '44px' }}
               >
                 <Heart size={20} className={cn(wishlist.length > 0 && "text-brand-gold fill-brand-gold")} />
@@ -163,7 +161,7 @@ const Navbar = () => {
               <Link 
                 to="/cart" 
                 className="relative w-11 h-11 flex items-center justify-center hover:text-brand-gold transition-colors text-brand-black"
-                aria-label="Shopping acquisition bag"
+                aria-label="Shopping Cart"
                 style={{ width: '44px', height: '44px' }}
               >
                 <ShoppingBag size={20} />
@@ -176,9 +174,9 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Logo for Desktop (Centered) */}
+          {/* Logo for Desktop */}
           <div className="hidden md:flex justify-center flex-none">
-            <Link to="/" className="flex items-center gap-2">
+            <Link to="/" className="flex items-center gap-2" aria-label="UFR Collection Home">
               <span className="text-2xl md:text-3xl font-serif font-bold tracking-tighter">
                 U<span className="text-brand-gold italic">F</span>R
               </span>
@@ -188,7 +186,7 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* Icons & Search Section */}
+          {/* Icons & Search Section - DESKTOP WITH ARIA LABELS */}
           <div className={cn(
             "flex items-center gap-3 md:gap-6 md:flex-1 md:justify-end",
             isSearchOpen && "w-full md:w-auto"
@@ -208,10 +206,12 @@ const Navbar = () => {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search heritage pieces..."
+                      aria-label="Search products"
                       className="w-full bg-brand-cream border border-brand-beige rounded-full py-2.5 md:py-2 pl-5 pr-10 text-sm md:text-xs focus:outline-none focus:border-brand-gold luxury-shadow-sm"
                     />
                     <button 
                       onClick={() => { setSearchQuery(''); setIsSearchOpen(false); }}
+                      aria-label="Close search"
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-grey hover:text-brand-gold p-1"
                     >
                       <X size={16} />
@@ -271,6 +271,7 @@ const Navbar = () => {
                 ) : (
                   <button 
                     onClick={() => setIsSearchOpen(true)}
+                    aria-label="Search products"
                     className="hidden md:flex p-2 hover:text-brand-gold transition-colors text-brand-black"
                   >
                     <Search size={20} />
@@ -279,10 +280,20 @@ const Navbar = () => {
               </AnimatePresence>
             </div>
             
-            <Link to="/profile" className="hidden md:flex p-2 hover:text-brand-gold transition-colors text-brand-black">
+            {/* ✅ DESKTOP ICONS WITH ARIA LABELS - FIXED */}
+            <Link 
+              to="/profile" 
+              aria-label="My Account"
+              className="hidden md:flex p-2 hover:text-brand-gold transition-colors text-brand-black"
+            >
               <User size={20} />
             </Link>
-            <Link to="/wishlist" className="hidden md:flex relative p-2 hover:text-brand-gold transition-colors text-brand-black">
+            
+            <Link 
+              to="/wishlist" 
+              aria-label="My Wishlist"
+              className="hidden md:flex relative p-2 hover:text-brand-gold transition-colors text-brand-black"
+            >
               <Heart size={20} />
               {wishlist.length > 0 && (
                 <span className="absolute top-1 right-1 bg-brand-gold text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
@@ -290,7 +301,12 @@ const Navbar = () => {
                 </span>
               )}
             </Link>
-            <Link to="/cart" className="hidden md:flex relative p-2 hover:text-brand-gold transition-colors text-brand-black">
+            
+            <Link 
+              to="/cart" 
+              aria-label="Shopping Cart"
+              className="hidden md:flex relative p-2 hover:text-brand-gold transition-colors text-brand-black"
+            >
               <ShoppingBag size={20} />
               {totalQuantity > 0 && (
                 <span className="absolute top-1 right-1 bg-brand-black text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
@@ -322,7 +338,7 @@ const Navbar = () => {
             >
               <div className="flex justify-between items-center mb-12">
                 <span className="text-2xl font-serif font-bold tracking-tighter">UFR</span>
-                <button onClick={() => setIsOpen(false)}>
+                <button onClick={() => setIsOpen(false)} aria-label="Close menu">
                   <X size={24} />
                 </button>
               </div>

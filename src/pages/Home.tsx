@@ -1,7 +1,5 @@
 // @ts-nocheck
 import React, { useEffect, useState, useRef } from 'react';
-// ... rest of imports
-
 import { motion, AnimatePresence, useScroll, useTransform } from 'motion/react';
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -38,34 +36,32 @@ const Home = () => {
       setLoading(true);
       setFetchError(null);
       try {
-       const [latest, all, homeConfig, luckyPromo] = await Promise.all([
-  productService.getLatestProducts(8),
-  productService.getAllProducts(),
-  homepageService.getConfig(),
-  luckyDrawService.getPromotionConfig()
-]);
+        const [latest, all, homeConfig, luckyPromo] = await Promise.all([
+          productService.getLatestProducts(8),
+          productService.getAllProducts(),
+          homepageService.getConfig(),
+          luckyDrawService.getPromotionConfig()
+        ]);
 
-// ✅ FIX: Ensure reviewsCount is a number
-const fixedLatest = (latest || []).map(p => ({
-  ...p,
-  reviewsCount: Number(p.reviewsCount) || 0,
-  rating: Number(p.rating) || 0
-}));
+        const fixedLatest = (latest || []).map(p => ({
+          ...p,
+          reviewsCount: Number(p.reviewsCount) || 0,
+          rating: Number(p.rating) || 0
+        }));
 
-const fixedAll = (all || []).map(p => ({
-  ...p,
-  reviewsCount: Number(p.reviewsCount) || 0,
-  rating: Number(p.rating) || 0
-}));
+        const fixedAll = (all || []).map(p => ({
+          ...p,
+          reviewsCount: Number(p.reviewsCount) || 0,
+          rating: Number(p.rating) || 0
+        }));
 
-// Debug logs
-console.log("✅ Products fetched successfully!");
-console.log("📦 New Arrivals count:", fixedLatest.length);
-console.log("📦 Best Sellers count:", fixedAll.filter(p => p.isBestSeller).length);
-console.log("📦 Total products in DB:", fixedAll.length);
+        console.log("✅ Products fetched successfully!");
+        console.log("📦 New Arrivals count:", fixedLatest.length);
+        console.log("📦 Best Sellers count:", fixedAll.filter(p => p.isBestSeller).length);
+        console.log("📦 Total products in DB:", fixedAll.length);
 
-setNewArrivals(fixedLatest);
-setBestSellers((fixedAll.filter(p => p.isBestSeller) || []).slice(0, 8));
+        setNewArrivals(fixedLatest);
+        setBestSellers((fixedAll.filter(p => p.isBestSeller) || []).slice(0, 8));
         setConfig(homeConfig);
         setPromoConfig(luckyPromo);
       } catch (err) {
@@ -116,7 +112,6 @@ setBestSellers((fixedAll.filter(p => p.isBestSeller) || []).slice(0, 8));
                 transition={{ duration: 1.2 }}
                 className="absolute inset-0"
               >
-                {/* IMPROVED: Stronger dark overlay for better text readability */}
                 <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/80 to-black/85 z-10" />
                 <motion.div
                   className="w-full h-full"
@@ -173,13 +168,14 @@ setBestSellers((fixedAll.filter(p => p.isBestSeller) || []).slice(0, 8));
           )}
         </AnimatePresence>
 
-        {/* Dots Indicator */}
+        {/* Dots Indicator - Fixed Touch Target */}
         <div className="absolute bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 md:gap-3">
           {activeSlides.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentSlide(index)}
-              className="group relative p-1 md:p-2"
+              aria-label={`Go to slide ${index + 1}`}
+              className="group relative p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
             >
               <div className={cn(
                 "h-1 md:h-1.5 transition-all duration-500 rounded-full",
@@ -189,16 +185,18 @@ setBestSellers((fixedAll.filter(p => p.isBestSeller) || []).slice(0, 8));
           ))}
         </div>
 
-        {/* Side Controls */}
+        {/* Side Controls - Fixed Touch Target Size */}
         <button 
           onClick={prevSlide}
-          className="absolute left-2 md:left-8 top-1/2 -translate-y-1/2 z-30 w-8 h-8 md:w-12 md:h-12 rounded-full border border-white/30 text-white flex items-center justify-center backdrop-blur-sm hover:bg-white hover:text-brand-black transition-all"
+          aria-label="Previous slide"
+          className="absolute left-2 md:left-8 top-1/2 -translate-y-1/2 z-30 min-w-[44px] min-h-[44px] w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/30 text-white flex items-center justify-center backdrop-blur-sm hover:bg-white hover:text-brand-black transition-all"
         >
           <ChevronLeft size={20} className="md:w-6 md:h-6" />
         </button>
         <button 
           onClick={nextSlide}
-          className="absolute right-2 md:right-8 top-1/2 -translate-y-1/2 z-30 w-8 h-8 md:w-12 md:h-12 rounded-full border border-white/30 text-white flex items-center justify-center backdrop-blur-sm hover:bg-white hover:text-brand-black transition-all"
+          aria-label="Next slide"
+          className="absolute right-2 md:right-8 top-1/2 -translate-y-1/2 z-30 min-w-[44px] min-h-[44px] w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/30 text-white flex items-center justify-center backdrop-blur-sm hover:bg-white hover:text-brand-black transition-all"
         >
           <ChevronRight size={20} className="md:w-6 md:h-6" />
         </button>
