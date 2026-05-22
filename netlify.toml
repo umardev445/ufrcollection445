@@ -11,18 +11,6 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# Cache images
-[[headers]]
-  for = "/images/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-
-# Enable compression
-[[headers]]
-  for = "/*"
-  [headers.values]
-    Content-Encoding = "gzip"
-
 # Handle React Router routes
 [[redirects]]
   from = "/*"
