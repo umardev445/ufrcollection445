@@ -5,7 +5,18 @@
 [build.environment]
   NODE_VERSION = "18"
 
-# Cache static assets for 1 year
+# --- NEW SECURITY & PERFORMANCE HEADERS ---
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Essential Security Headers
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    # Cache static assets
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Cache for assets folder (as before)
 [[headers]]
   for = "/assets/*"
   [headers.values]
