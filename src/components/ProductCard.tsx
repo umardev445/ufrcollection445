@@ -1,13 +1,18 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, ShoppingBag, Eye, Star } from 'lucide-react';
-import { motion } from 'motion/react';
+import {
+  Heart,
+  ShoppingBag,
+  Eye,
+  Star
+} from 'lucide-react';
 import { useWishlist } from '../context/WishlistContext';
-import { useCart, CartItem } from '../context/CartContext';
+import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { formatPrice, cn } from '../utils/cn';
-import toast from 'react-hot-toast';
-import LoginRequiredModal from './LoginRequiredModal';
+
+// STEP 9: Lazy load modal
+const LoginRequiredModal = React.lazy(() => import('./LoginRequiredModal'));
 
 export interface Product {
   id: string;
@@ -26,14 +31,20 @@ export interface Product {
   offerLabel?: string;
 }
 
-const ProductCard: React.FC<{ product: Product, onQuickView?: (product: Product) => void }> = ({ product, onQuickView }) => {
+// STEP 10: Memoized component
+const ProductCard = React.memo(({ product, onQuickView }: { product: Product, onQuickView?: (product: Product) => void }) => {
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { addToCart } = useCart();
   const { user } = useAuth();
-  const [isHovered, setIsHovered] = React.useState(false);
   const [imageLoaded, setImageLoaded] = React.useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = React.useState(false);
   const isWishlisted = isInWishlist(product.id);
+
+  // STEP 13: Dynamic toast import
+  const showToast = async (message: string) => {
+    const toast = (await import('react-hot-toast')).default;
+    toast.success(message);
+  };
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -50,11 +61,11 @@ const ProductCard: React.FC<{ product: Product, onQuickView?: (product: Product)
       price: product.price,
       salePrice: product.salePrice,
       image: product.images[0],
-      size: 'M', // Default size
+      size: 'M',
       color: 'Default',
       quantity: 1,
     });
-    toast.success('Added to cart');
+    showToast('Added to cart');
   };
 
   const handleWishlist = (e: React.MouseEvent) => {
@@ -72,41 +83,38 @@ const ProductCard: React.FC<{ product: Product, onQuickView?: (product: Product)
   const discountPercentage = product.discount || (product.salePrice && product.salePrice > 0 && product.salePrice < product.price ? Math.round((1 - product.salePrice / product.price) * 100) : 0);
 
   return (
-    <motion.div
-      className="group bg-brand-white rounded-[20px] p-3 shadow-luxury hover:shadow-luxury-hover border border-brand-beige/40 flex flex-col justify-between"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      whileHover={{ y: -8 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
+    // STEP 8: Removed whileHover, using CSS transitions instead
+    <div
+      className="group bg-brand-white rounded-[20px] p-3 shadow-luxury hover:shadow-luxury-hover border border-brand-beige/40 flex flex-col justify-between hover:-translate-y-2 transition-all duration-300"
     >
       <Link to={`/product/${product.id}`} className="block h-full">
         <div className="relative aspect-[3/4] overflow-hidden rounded-[14px] bg-brand-cream transition-all duration-500">
-          {/* Main Image */}
+          {/* STEP 4 & 5: Pure CSS hover with no React state */}
           <img
             src={product.images[0] || 'https://images.unsplash.com/photo-1594235412407-5903f444f357?q=80&w=800'}
             alt={product.name}
             loading="lazy"
+            decoding="async"
+            sizes="(max-width: 768px) 50vw, 25vw"
             onLoad={() => setImageLoaded(true)}
             className={cn(
               "w-full h-full object-cover transition-all duration-500 ease-out group-hover:scale-[1.08]",
-              imageLoaded ? "opacity-100 blur-0" : "opacity-0 blur-xl",
-              isHovered && product.images[1] ? "opacity-0" : "opacity-100"
+              imageLoaded ? "opacity-100 group-hover:opacity-0" : "opacity-0"
             )}
             onError={(e: any) => { e.target.src = 'https://images.unsplash.com/photo-1594235412407-5903f444f357?q=80&w=800'; }}
           />
 
-          {/* Second Image on Hover */}
+          {/* STEP 5: Second image with pure CSS hover */}
           {product.images[1] && (
             <img
               src={product.images[1] || undefined}
               alt={`${product.name} - view 2`}
               loading="lazy"
+              decoding="async"
+              sizes="(max-width: 768px) 50vw, 25vw"
               className={cn(
                 "absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-out scale-100 group-hover:scale-[1.08]",
-                isHovered && imageLoaded ? "opacity-100" : "opacity-0"
+                "opacity-0 group-hover:opacity-100"
               )}
             />
           )}
@@ -165,14 +173,16 @@ const ProductCard: React.FC<{ product: Product, onQuickView?: (product: Product)
             </button>
           </div>
           
-          {/* Subtle overlay for better text contrast/premium feel */}
           <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         </div>
 
-        <LoginRequiredModal 
-          isOpen={isLoginModalOpen} 
-          onClose={() => setIsLoginModalOpen(false)} 
-        />
+        {/* STEP 9: Suspense for lazy loaded modal */}
+        <React.Suspense fallback={null}>
+          <LoginRequiredModal 
+            isOpen={isLoginModalOpen} 
+            onClose={() => setIsLoginModalOpen(false)} 
+          />
+        </React.Suspense>
 
         <div className="mt-4 space-y-1.5 text-center px-2">
           <p className="text-[9px] uppercase tracking-[0.3em] text-brand-gold font-bold">
@@ -199,14 +209,15 @@ const ProductCard: React.FC<{ product: Product, onQuickView?: (product: Product)
                 className={cn(i < Math.floor(product.rating) ? "text-brand-gold fill-brand-gold" : "text-brand-beige fill-brand-beige")}
               />
             ))}
-          <span className="text-[9px] text-brand-grey ml-1 tracking-tighter">
-  ({Number(product.reviewsCount) || 0} reviews)
-</span>
+            <span className="text-[9px] text-brand-grey ml-1 tracking-tighter">
+              ({Number(product.reviewsCount) || 0} reviews)
+            </span>
           </div>
         </div>
       </Link>
-    </motion.div>
+    </div>
   );
-};
+});
 
-export default ProductCard;
+// STEP 10: Memoized export
+export default React.memo(ProductCard);

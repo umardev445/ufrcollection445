@@ -1,7 +1,14 @@
 // @ts-nocheck
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'motion/react';
-import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  ArrowRight,
+  Trophy,
+  Ticket,
+  Star
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { categories, heroSlides as defaultHeroSlides } from '../constants/demoData';
 import ProductCard from '../components/ProductCard';
@@ -11,7 +18,6 @@ import { homepageService, HomepageConfig } from '../services/homepageService';
 import SEO from '../components/SEO';
 import { ProductCardSkeleton } from '../components/Skeletons';
 import { luckyDrawService, LuckyDrawConfig } from '../services/luckyDrawService';
-import { Trophy, Ticket, Star } from 'lucide-react';
 
 const Home = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -31,14 +37,23 @@ const Home = () => {
   const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
+  // Mobile detection for disabling parallax
+  const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
+
+  // useMemo for sorting sections
+  const sortedSections = useMemo(() => {
+    return config?.sections?.sort((a, b) => a.order - b.order) || [];
+  }, [config]);
+
   useEffect(() => {
     const fetchHomeData = async () => {
       setLoading(true);
       setFetchError(null);
       try {
-        const [latest, all, homeConfig, luckyPromo] = await Promise.all([
+        // STEP 1: Replace getAllProducts with getBestSellerProducts
+        const [latest, bestSellerProducts, homeConfig, luckyPromo] = await Promise.all([
           productService.getLatestProducts(8),
-          productService.getAllProducts(),
+          productService.getBestSellerProducts(8),
           homepageService.getConfig(),
           luckyDrawService.getPromotionConfig()
         ]);
@@ -49,7 +64,8 @@ const Home = () => {
           rating: Number(p.rating) || 0
         }));
 
-        const fixedAll = (all || []).map(p => ({
+        // STEP 3: Fixed best sellers mapping
+        const fixedBestSellers = (bestSellerProducts || []).map(p => ({
           ...p,
           reviewsCount: Number(p.reviewsCount) || 0,
           rating: Number(p.rating) || 0
@@ -57,11 +73,10 @@ const Home = () => {
 
         console.log("✅ Products fetched successfully!");
         console.log("📦 New Arrivals count:", fixedLatest.length);
-        console.log("📦 Best Sellers count:", fixedAll.filter(p => p.isBestSeller).length);
-        console.log("📦 Total products in DB:", fixedAll.length);
+        console.log("📦 Best Sellers count:", fixedBestSellers.length);
 
         setNewArrivals(fixedLatest);
-        setBestSellers((fixedAll.filter(p => p.isBestSeller) || []).slice(0, 8));
+        setBestSellers(fixedBestSellers);
         setConfig(homeConfig);
         setPromoConfig(luckyPromo);
       } catch (err) {
@@ -117,12 +132,15 @@ const Home = () => {
                   className="w-full h-full"
                   initial={{ scale: 1.1 }}
                   animate={{ scale: 1 }}
-                  transition={{ duration: 10, ease: "linear" }}
+                  transition={{ duration: 4 }} // STEP 8: Reduced from 10 to 4
                 >
                   <motion.img
-                    style={{ y }}
+                    style={isMobile ? {} : { y }} // STEP 7: Disable parallax on mobile
                     src={slide.image || undefined}
                     alt={slide.title}
+                    loading={index === 0 ? "eager" : "lazy"} // STEP 5
+                    decoding="async" // STEP 5
+                    fetchPriority={index === 0 ? "high" : "auto"} // STEP 5
                     className="w-full h-full object-cover"
                   />
                 </motion.div>
@@ -257,10 +275,13 @@ const Home = () => {
               >
                 <Link to={`/shop?category=${encodeURIComponent(cat.name)}`} className="block text-center">
                   <div className="aspect-square md:aspect-[4/5] overflow-hidden rounded-2xl md:rounded-[2rem] mb-3 md:mb-5 relative shadow-md hover:shadow-xl transition-all duration-500 bg-brand-cream">
+                    {/* STEP 9: Optimized Category Images */}
                     <img
                       src={cat.image || "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?q=80&w=400&h=500&fit=crop"}
                       alt={cat.name}
                       loading="lazy"
+                      decoding="async"
+                      sizes="(max-width: 768px) 50vw, 20vw"
                       onError={(e) => {
                         e.currentTarget.src = "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?q=80&w=400&h=500&fit=crop";
                       }}
@@ -295,8 +316,8 @@ const Home = () => {
         </div>
       )}
 
-      {/* Dynamic Sections (from config) */}
-      {config?.sections?.sort((a,b) => a.order - b.order).map((section) => {
+      {/* Dynamic Sections (from config) - STEP 13: Using memoized sections */}
+      {sortedSections.map((section) => {
         if (!section.enabled) return null;
         if (section.type === 'categories') return null;
 

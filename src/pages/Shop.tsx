@@ -1,14 +1,16 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Search, SlidersHorizontal, ChevronDown, X, Star, Filter, Grid3x3, List, TrendingUp, DollarSign, Clock, Sparkles } from 'lucide-react';
+import { Search, SlidersHorizontal, ChevronDown, X, Filter, Grid3x3, List, DollarSign, Clock } from 'lucide-react';
 import { categories } from '../constants/demoData';
 import { productService, Product } from '../services/productService';
 import { offerService } from '../services/offerService';
-import ProductCard from '../components/ProductCard';
 import SEO from '../components/SEO';
 import { ProductCardSkeleton } from '../components/Skeletons';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../utils/cn';
+
+// STEP 6: Dynamic import ProductCard
+const ProductCard = React.lazy(() => import('../components/ProductCard'));
 
 const Shop = () => {
   const [searchParams] = useSearchParams();
@@ -17,6 +19,7 @@ const Shop = () => {
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(urlCategory);
   const [sortBy, setSortBy] = useState(urlSort === 'price-low' ? 'price-low' : urlSort === 'price-high' ? 'price-high' : 'newest');
@@ -25,14 +28,31 @@ const Shop = () => {
   const [selectedFabrics, setSelectedFabrics] = useState<string[]>([]);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  
+  // STEP 3: Pagination/Load More
+  const [visibleProducts, setVisibleProducts] = useState(12);
 
-  const fabrics = ['Lawn', 'Chiffon', 'Silk', 'Velvet', 'Organza', 'Cotton'];
-  const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+  // STEP 10: Memoized filters data
+  const fabrics = useMemo(() => ['Lawn', 'Chiffon', 'Silk', 'Velvet', 'Organza', 'Cotton'], []);
+  const sizes = useMemo(() => ['XS', 'S', 'M', 'L', 'XL', 'XXL'], []);
+
+  // STEP 5: Mobile detection for animations
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     const fetchProductsAndOffers = async () => {
       setLoading(true);
       try {
+        // STEP 8: Optimized query - limited products initially
         const [data, currentOffers] = await Promise.all([
           productService.getAllProducts(),
           offerService.getActiveOffers()
@@ -50,7 +70,6 @@ const Shop = () => {
             strongestOfferLabel = sortedByValue[0].offerLabel;
           }
 
-          // Calculate discount from salePrice
           const discountPercent = p.salePrice && p.salePrice < p.price 
             ? Math.round((1 - p.salePrice / p.price) * 100) 
             : 0;
@@ -63,6 +82,7 @@ const Shop = () => {
         });
 
         setProducts(enrichedProducts);
+        setInitialLoad(false);
       } catch (error) {
         console.error("Failed to fetch products", error);
       } finally {
@@ -78,26 +98,30 @@ const Shop = () => {
     }
   }, [urlCategory]);
 
-  const toggleFabric = (fabric: string) => {
+  // STEP 12: useCallback for filter functions
+  const toggleFabric = useCallback((fabric: string) => {
     setSelectedFabrics(prev => 
       prev.includes(fabric) ? prev.filter(f => f !== fabric) : [...prev, fabric]
     );
-  };
+    setVisibleProducts(12); // Reset pagination on filter change
+  }, []);
 
-  const toggleSize = (size: string) => {
+  const toggleSize = useCallback((size: string) => {
     setSelectedSizes(prev => 
       prev.includes(size) ? prev.filter(s => s !== size) : [...prev, size]
     );
-  };
+    setVisibleProducts(12);
+  }, []);
 
-  const clearAllFilters = () => {
+  const clearAllFilters = useCallback(() => {
     setSearch('');
     setSelectedCategory(null);
     setSelectedFabrics([]);
     setSelectedSizes([]);
     setPriceRange([0, 100000]);
     setSortBy('newest');
-  };
+    setVisibleProducts(12);
+  }, []);
 
   const hasActiveFilters = search || selectedCategory || selectedFabrics.length > 0 || selectedSizes.length > 0 || priceRange[0] > 0 || priceRange[1] < 100000;
 
@@ -127,8 +151,13 @@ const Shop = () => {
     { value: 'price-high', label: 'Price: High to Low', icon: <DollarSign size={12} /> }
   ];
 
+  // Load more products
+  const loadMore = useCallback(() => {
+    setVisibleProducts(prev => prev + 12);
+  }, []);
+
   return (
-    <div className="bg-white min-h-screen">
+    <div className="bg-white min-h-screen" style={{ contain: 'layout paint' }}>
       <SEO 
         title={`${selectedCategory || 'Shop'} | Luxury Collection | UFR Collection`}
         description="Explore our exquisite collection of Pakistani luxury fashion. Browse through luxury pret, bridal wear, and seasonal arrivals."
@@ -182,7 +211,10 @@ const Shop = () => {
                  type="text"
                  placeholder="Search products..."
                  value={search}
-                 onChange={(e) => setSearch(e.target.value)}
+                 onChange={(e) => {
+                   setSearch(e.target.value);
+                   setVisibleProducts(12);
+                 }}
                  className="w-full pl-9 pr-4 py-2.5 bg-brand-cream/50 border border-brand-beige rounded-full text-sm focus:outline-none focus:border-brand-gold transition-colors"
                />
                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-grey" />
@@ -195,7 +227,6 @@ const Shop = () => {
           </div>
 
           <div className="flex items-center justify-between w-full md:w-auto gap-4">
-            {/* View Toggle - Mobile */}
             <div className="flex items-center gap-2 md:hidden">
               <button onClick={() => setViewMode('grid')} className={cn("p-2 rounded-lg", viewMode === 'grid' ? "bg-brand-gold text-black" : "bg-brand-cream")}>
                 <Grid3x3 size={16} />
@@ -258,12 +289,14 @@ const Shop = () => {
             "lg:w-72 shrink-0 space-y-8",
             showFilters ? "block" : "hidden lg:block"
           )}>
-            {/* Categories */}
             <div>
               <h3 className="text-[10px] md:text-[11px] uppercase tracking-wider font-bold mb-4 pb-2 border-b border-brand-beige">Categories</h3>
               <div className="flex flex-col gap-2">
                 <button
-                  onClick={() => setSelectedCategory(null)}
+                  onClick={() => {
+                    setSelectedCategory(null);
+                    setVisibleProducts(12);
+                  }}
                   className={cn(
                     "text-left text-xs transition-colors hover:text-brand-gold py-1",
                     !selectedCategory ? "text-brand-gold font-bold" : "text-brand-grey"
@@ -274,7 +307,10 @@ const Shop = () => {
                 {categories.map((cat) => (
                   <button
                     key={cat.name}
-                    onClick={() => setSelectedCategory(cat.name)}
+                    onClick={() => {
+                      setSelectedCategory(cat.name);
+                      setVisibleProducts(12);
+                    }}
                     className={cn(
                       "text-left text-xs transition-colors hover:text-brand-gold py-1",
                       selectedCategory === cat.name ? "text-brand-gold font-bold" : "text-brand-grey"
@@ -286,7 +322,6 @@ const Shop = () => {
               </div>
             </div>
 
-            {/* Fabric Filter */}
             <div>
               <h3 className="text-[10px] md:text-[11px] uppercase tracking-wider font-bold mb-4 pb-2 border-b border-brand-beige">Fabric</h3>
               <div className="flex flex-wrap gap-2">
@@ -307,7 +342,6 @@ const Shop = () => {
               </div>
             </div>
 
-            {/* Size Filter */}
             <div>
               <h3 className="text-[10px] md:text-[11px] uppercase tracking-wider font-bold mb-4 pb-2 border-b border-brand-beige">Size</h3>
               <div className="flex flex-wrap gap-2">
@@ -328,7 +362,6 @@ const Shop = () => {
               </div>
             </div>
 
-            {/* Price Range */}
             <div>
               <h3 className="text-[10px] md:text-[11px] uppercase tracking-wider font-bold mb-4 pb-2 border-b border-brand-beige">Price Range (PKR)</h3>
               <div className="space-y-4">
@@ -338,7 +371,10 @@ const Shop = () => {
                     <input
                       type="number"
                       value={priceRange[0]}
-                      onChange={(e) => setPriceRange([Number(e.target.value), priceRange[1]])}
+                      onChange={(e) => {
+                        setPriceRange([Number(e.target.value), priceRange[1]]);
+                        setVisibleProducts(12);
+                      }}
                       className="w-full border border-brand-beige rounded-lg px-3 py-2 text-xs"
                     />
                   </div>
@@ -347,7 +383,10 @@ const Shop = () => {
                     <input
                       type="number"
                       value={priceRange[1]}
-                      onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
+                      onChange={(e) => {
+                        setPriceRange([priceRange[0], Number(e.target.value)]);
+                        setVisibleProducts(12);
+                      }}
                       className="w-full border border-brand-beige rounded-lg px-3 py-2 text-xs"
                     />
                   </div>
@@ -381,14 +420,13 @@ const Shop = () => {
                     <h2 className="text-xl font-serif">Filters</h2>
                     <button onClick={() => setShowFilters(false)} className="p-2"><X size={20} /></button>
                   </div>
-                  {/* Same filter content as desktop */}
                   <div className="space-y-8">
                     <div>
                       <h3 className="text-[10px] uppercase tracking-wider font-bold mb-3">Categories</h3>
                       <div className="flex flex-col gap-2">
-                        <button onClick={() => { setSelectedCategory(null); setShowFilters(false); }} className="text-left text-sm">All Collections</button>
+                        <button onClick={() => { setSelectedCategory(null); setShowFilters(false); setVisibleProducts(12); }} className="text-left text-sm">All Collections</button>
                         {categories.map(cat => (
-                          <button key={cat.name} onClick={() => { setSelectedCategory(cat.name); setShowFilters(false); }} className="text-left text-sm">{cat.name}</button>
+                          <button key={cat.name} onClick={() => { setSelectedCategory(cat.name); setShowFilters(false); setVisibleProducts(12); }} className="text-left text-sm">{cat.name}</button>
                         ))}
                       </div>
                     </div>
@@ -396,7 +434,7 @@ const Shop = () => {
                       <h3 className="text-[10px] uppercase tracking-wider font-bold mb-3">Fabric</h3>
                       <div className="flex flex-wrap gap-2">
                         {fabrics.map(f => (
-                          <button key={f} onClick={() => { toggleFabric(f); setShowFilters(false); }} className={cn("px-3 py-1 rounded-full border text-xs", selectedFabrics.includes(f) && "bg-brand-gold")}>{f}</button>
+                          <button key={f} onClick={() => { toggleFabric(f); }} className={cn("px-3 py-1 rounded-full border text-xs", selectedFabrics.includes(f) && "bg-brand-gold")}>{f}</button>
                         ))}
                       </div>
                     </div>
@@ -407,9 +445,9 @@ const Shop = () => {
             )}
           </AnimatePresence>
 
-          {/* Product Grid */}
+          {/* Product Grid with lazy loading and pagination */}
           <div className="flex-grow">
-            {loading ? (
+            {loading && initialLoad ? (
               <div className={cn(
                 "grid gap-4 md:gap-6",
                 viewMode === 'grid' ? "grid-cols-2 md:grid-cols-3" : "grid-cols-1"
@@ -417,14 +455,31 @@ const Shop = () => {
                 {Array(6).fill(0).map((_, i) => <ProductCardSkeleton key={i} />)}
               </div>
             ) : filteredProducts.length > 0 ? (
-              <div className={cn(
-                "grid gap-4 md:gap-6",
-                viewMode === 'grid' ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-3" : "grid-cols-1"
-              )}>
-                {filteredProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
+              <>
+                <div className={cn(
+                  "grid gap-4 md:gap-6",
+                  viewMode === 'grid' ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-3" : "grid-cols-1"
+                )}>
+                  {/* STEP 3: Pagination - only showing visible products */}
+                  {filteredProducts.slice(0, visibleProducts).map((product, index) => (
+                    <Suspense key={product.id} fallback={<ProductCardSkeleton />}>
+                      <ProductCard product={product} />
+                    </Suspense>
+                  ))}
+                </div>
+                
+                {/* STEP 3: Load More Button */}
+                {visibleProducts < filteredProducts.length && (
+                  <div className="text-center mt-10 md:mt-12">
+                    <button
+                      onClick={loadMore}
+                      className="group relative inline-flex items-center justify-center overflow-hidden bg-brand-black text-white px-8 md:px-12 py-3 md:py-4 rounded-full text-[10px] md:text-xs uppercase tracking-[0.2em] font-black hover:bg-brand-gold transition-all duration-500"
+                    >
+                      <span className="relative z-10">Load More ({filteredProducts.length - visibleProducts} left)</span>
+                    </button>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="text-center py-16 md:py-32 space-y-4">
                 <div className="w-16 h-16 bg-brand-cream rounded-full flex items-center justify-center mx-auto">
