@@ -11,7 +11,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { formatPrice, cn } from '../utils/cn';
 
-// STEP 9: Lazy load modal
+// Lazy load modal
 const LoginRequiredModal = React.lazy(() => import('./LoginRequiredModal'));
 
 export interface Product {
@@ -31,7 +31,7 @@ export interface Product {
   offerLabel?: string;
 }
 
-// STEP 10: Memoized component
+// Memoized component for performance
 const ProductCard = React.memo(({ product, onQuickView }: { product: Product, onQuickView?: (product: Product) => void }) => {
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { addToCart } = useCart();
@@ -40,7 +40,7 @@ const ProductCard = React.memo(({ product, onQuickView }: { product: Product, on
   const [isLoginModalOpen, setIsLoginModalOpen] = React.useState(false);
   const isWishlisted = isInWishlist(product.id);
 
-  // STEP 13: Dynamic toast import
+  // Dynamic toast import (reduces initial bundle size)
   const showToast = async (message: string) => {
     const toast = (await import('react-hot-toast')).default;
     toast.success(message);
@@ -83,13 +83,12 @@ const ProductCard = React.memo(({ product, onQuickView }: { product: Product, on
   const discountPercentage = product.discount || (product.salePrice && product.salePrice > 0 && product.salePrice < product.price ? Math.round((1 - product.salePrice / product.price) * 100) : 0);
 
   return (
-    // STEP 8: Removed whileHover, using CSS transitions instead
     <div
       className="group bg-brand-white rounded-[20px] p-3 shadow-luxury hover:shadow-luxury-hover border border-brand-beige/40 flex flex-col justify-between hover:-translate-y-2 transition-all duration-300"
     >
       <Link to={`/product/${product.id}`} className="block h-full">
         <div className="relative aspect-[3/4] overflow-hidden rounded-[14px] bg-brand-cream transition-all duration-500">
-          {/* STEP 4 & 5: Pure CSS hover with no React state */}
+          {/* Main Image - Pure CSS hover */}
           <img
             src={product.images[0] || 'https://images.unsplash.com/photo-1594235412407-5903f444f357?q=80&w=800'}
             alt={product.name}
@@ -104,7 +103,7 @@ const ProductCard = React.memo(({ product, onQuickView }: { product: Product, on
             onError={(e: any) => { e.target.src = 'https://images.unsplash.com/photo-1594235412407-5903f444f357?q=80&w=800'; }}
           />
 
-          {/* STEP 5: Second image with pure CSS hover */}
+          {/* Second Image on Hover - Pure CSS */}
           {product.images[1] && (
             <img
               src={product.images[1] || undefined}
@@ -127,7 +126,7 @@ const ProductCard = React.memo(({ product, onQuickView }: { product: Product, on
               </span>
             )}
             {product.isBestSeller && (
-              <span className="bg-gradient-to-r from-brand-gold to-[#B8860B] text-white text-[9px] uppercase tracking-[0.2em] px-3 py-1.5 font-bold rounded-full shadow-md">
+              <span className="bg-gradient-to-r from-brand-gold to-brand-gold-dark text-white text-[9px] uppercase tracking-[0.2em] px-3 py-1.5 font-bold rounded-full shadow-md">
                 Best Seller
               </span>
             )}
@@ -149,6 +148,7 @@ const ProductCard = React.memo(({ product, onQuickView }: { product: Product, on
               "absolute top-4 right-4 p-2.5 rounded-full shadow-lg transition-all duration-300 z-20 transform group-hover:scale-100 scale-90",
               isWishlisted ? "bg-red-500 text-white" : "bg-white/80 backdrop-blur-sm text-brand-black hover:bg-white"
             )}
+            aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
           >
             <Heart size={18} fill={isWishlisted ? "currentColor" : "none"} className={isWishlisted ? "animate-pulse" : ""} />
           </button>
@@ -157,16 +157,18 @@ const ProductCard = React.memo(({ product, onQuickView }: { product: Product, on
           <button
             onClick={handleQuickView}
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-md text-brand-black px-6 py-3 rounded-full flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-brand-gold hover:text-white transform scale-75 group-hover:scale-100 z-20 shadow-xl"
+            aria-label="Quick view product"
           >
             <Eye size={16} />
             <span className="text-[10px] uppercase font-bold tracking-widest">Quick View</span>
           </button>
 
-          {/* Add to Cart Slide Up */}
+          {/* Add to Cart Button */}
           <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out z-20">
             <button
               onClick={handleAddToCart}
               className="w-full bg-brand-black text-white text-[10px] uppercase tracking-[0.2em] py-4 rounded-xl font-bold hover:bg-brand-gold transition-all flex items-center justify-center gap-2 shadow-2xl"
+              aria-label="Add to cart"
             >
               <ShoppingBag size={14} />
               Add to Cart
@@ -176,7 +178,7 @@ const ProductCard = React.memo(({ product, onQuickView }: { product: Product, on
           <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         </div>
 
-        {/* STEP 9: Suspense for lazy loaded modal */}
+        {/* Lazy loaded modal */}
         <React.Suspense fallback={null}>
           <LoginRequiredModal 
             isOpen={isLoginModalOpen} 
@@ -219,5 +221,5 @@ const ProductCard = React.memo(({ product, onQuickView }: { product: Product, on
   );
 });
 
-// STEP 10: Memoized export
+// Memoized export for performance
 export default React.memo(ProductCard);

@@ -37,8 +37,17 @@ const Home = () => {
   const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
-  // Mobile detection for disabling parallax
-  const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
+  // ✅ FIXED: Mobile detection using useState + useEffect
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // useMemo for sorting sections
   const sortedSections = useMemo(() => {
@@ -50,7 +59,6 @@ const Home = () => {
       setLoading(true);
       setFetchError(null);
       try {
-        // STEP 1: Replace getAllProducts with getBestSellerProducts
         const [latest, bestSellerProducts, homeConfig, luckyPromo] = await Promise.all([
           productService.getLatestProducts(8),
           productService.getBestSellerProducts(8),
@@ -64,7 +72,6 @@ const Home = () => {
           rating: Number(p.rating) || 0
         }));
 
-        // STEP 3: Fixed best sellers mapping
         const fixedBestSellers = (bestSellerProducts || []).map(p => ({
           ...p,
           reviewsCount: Number(p.reviewsCount) || 0,
@@ -114,7 +121,7 @@ const Home = () => {
         description="Discover the pinnacle of Pakistani luxury pret, formal wear, and bridal collections. Handcrafted elegance for the modern woman. Shop the UFR Collection."
       />
       
-      {/* Cinematic Hero Slider - IMPROVED DARK OVERLAY */}
+      {/* Cinematic Hero Slider */}
       <section ref={heroRef} className="relative h-[90vh] md:h-screen bg-brand-black overflow-hidden">
         <AnimatePresence mode="wait">
           {activeSlides.map((slide, index) =>
@@ -132,15 +139,18 @@ const Home = () => {
                   className="w-full h-full"
                   initial={{ scale: 1.1 }}
                   animate={{ scale: 1 }}
-                  transition={{ duration: 4 }} // STEP 8: Reduced from 10 to 4
+                  transition={{ duration: 4 }}
                 >
-                  <motion.img
-                    style={isMobile ? {} : { y }} // STEP 7: Disable parallax on mobile
+                  {/* ✅ FIXED: Parallax disabled on mobile */}
+                  <img
                     src={slide.image || undefined}
                     alt={slide.title}
-                    loading={index === 0 ? "eager" : "lazy"} // STEP 5
-                    decoding="async" // STEP 5
-                    fetchPriority={index === 0 ? "high" : "auto"} // STEP 5
+                    style={isMobile ? {} : { y }}
+                    loading={index === 0 ? "eager" : "lazy"}
+                    decoding="async"
+                    fetchPriority={index === 0 ? "high" : "auto"}
+                    width="1200"
+                    height="800"
                     className="w-full h-full object-cover"
                   />
                 </motion.div>
@@ -186,7 +196,7 @@ const Home = () => {
           )}
         </AnimatePresence>
 
-        {/* Dots Indicator - Fixed Touch Target */}
+        {/* Dots Indicator */}
         <div className="absolute bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 md:gap-3">
           {activeSlides.map((_, index) => (
             <button
@@ -203,7 +213,7 @@ const Home = () => {
           ))}
         </div>
 
-        {/* Side Controls - Fixed Touch Target Size */}
+        {/* Side Controls */}
         <button 
           onClick={prevSlide}
           aria-label="Previous slide"
@@ -275,7 +285,6 @@ const Home = () => {
               >
                 <Link to={`/shop?category=${encodeURIComponent(cat.name)}`} className="block text-center">
                   <div className="aspect-square md:aspect-[4/5] overflow-hidden rounded-2xl md:rounded-[2rem] mb-3 md:mb-5 relative shadow-md hover:shadow-xl transition-all duration-500 bg-brand-cream">
-                    {/* STEP 9: Optimized Category Images */}
                     <img
                       src={cat.image || "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?q=80&w=400&h=500&fit=crop"}
                       alt={cat.name}
@@ -316,7 +325,7 @@ const Home = () => {
         </div>
       )}
 
-      {/* Dynamic Sections (from config) - STEP 13: Using memoized sections */}
+      {/* Dynamic Sections */}
       {sortedSections.map((section) => {
         if (!section.enabled) return null;
         if (section.type === 'categories') return null;
@@ -425,7 +434,7 @@ const Home = () => {
         }
       })}
 
-      {/* Default Fallback Content if no config sections */}
+      {/* Default Fallback Content */}
       {(!config || config.sections.length === 0) && !loading && (
         <>
           <section className="py-12 px-4 md:py-24 md:px-8 bg-brand-cream relative overflow-hidden">

@@ -76,6 +76,31 @@ export const productService = {
     }
   },
 
+  // ✅ NEW FUNCTION - ADD THIS (STEP 4 from before)
+  async getBestSellerProducts(limitCount: number = 8) {
+    try {
+      const q = query(
+        collection(db, COLLECTION),
+        where('isBestSeller', '==', true),
+        limit(limitCount)
+      );
+      const snapshot = await getDocs(q);
+      const products = snapshot.docs.map(doc => ({ 
+        id: doc.id, 
+        ...doc.data(),
+        reviewsCount: Number(doc.data().reviewsCount) || 0,
+        rating: Number(doc.data().rating) || 0
+      } as Product));
+      
+      console.log(`✅ Found ${products.length} best seller products`);
+      return products;
+    } catch (error) {
+      console.error("❌ Error fetching best sellers:", error);
+      // Fallback: agar query fail ho toh empty array return karo
+      return [];
+    }
+  },
+
   async getProductById(id: string) {
     try {
       const docRef = doc(db, COLLECTION, id);

@@ -5,7 +5,7 @@ export const heroSlides = [
     id: "1",
     title: "ELEGANCE REDEFINED",
     subtitle: "Discover our latest luxury pret collection",
-    image: "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?q=80&w=1200",
+    image: "/images/hero-1.jpg",  // ✅ Tumhari local image
     cta: "Shop Now",
     link: "/shop?category=Luxury Pret",
     order: 1
@@ -14,7 +14,7 @@ export const heroSlides = [
     id: "2",
     title: "SUMMER COLLECTION 2026",
     subtitle: "Lightweight fabrics for the modern woman",
-    image: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1200",
+    image: "/images/hero-2.jpg",  // ✅ Tumhari local image
     cta: "Explore",
     link: "/shop?category=Casual",
     order: 2
