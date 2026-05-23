@@ -42,10 +42,10 @@ const EidiGiveaway = () => {
   // Urdu Promotion Text for WhatsApp
   const urduPromoMessage = `🎉 *UFR COLLECTION - عیدی انعام 2026* 🎉
   
-✨ *₹25,000 نقد عیدی جیتیں* ✨
+✨ *RS25,000 نقد عیدی جیتیں* ✨
 
 🎁 *5 خوش قسمت افراد*
-💰 *انعام:* ₹25,000 نقد
+💰 *انعام:* RS25,000 نقد
 📱 *ٹرانسفر:* جاز کیش / ایزی پیسہ
 📅 *تاریخ:* عید الفطر 2026
 
@@ -277,7 +277,7 @@ const EidiGiveaway = () => {
             </div>
             
             <h1 className="text-3xl md:text-4xl font-bold mb-2">
-              <span className="text-brand-gold">₹25,000</span> عیدی جیتیں
+              <span className="text-brand-gold">RS25,000</span> عیدی جیتیں
             </h1>
             <p className="text-white/70 text-sm mb-4">5 خوش قسمت افراد • نقد انعام</p>
             
