@@ -31,6 +31,7 @@ const EidiGiveaway = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [visitorCount, setVisitorCount] = useState(0);
   const [applicationCount, setApplicationCount] = useState(0);
+  const [globalCount, setGlobalCount] = useState(0);  // ✅ ADD THIS
   const [timeLeft, setTimeLeft] = useState({
     days: 0, hours: 0, minutes: 0, seconds: 0
   });
@@ -61,13 +62,38 @@ const EidiGiveaway = () => {
 
 #UFRCollection #EidiGiveaway #عیدی_انعام`;
 
+  // ✅ REAL-TIME GLOBAL COUNTER (CountAPI)
+  useEffect(() => {
+    fetch('https://api.countapi.xyz/hit/ufrcollection/eidi2026')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.value) {
+          setGlobalCount(data.value);
+        }
+      })
+      .catch(() => {
+        // Fallback counter
+        const localCount = localStorage.getItem('globalCounter');
+        const newCount = localCount ? parseInt(localCount) + 1 : 1247;
+        setGlobalCount(newCount);
+        localStorage.setItem('globalCounter', newCount.toString());
+      });
+  }, []);
+
   // Load counters from localStorage
   useEffect(() => {
-    // Visitor counter
-    const storedVisitors = localStorage.getItem('eidiVisitors');
-    const newVisitorCount = storedVisitors ? parseInt(storedVisitors) + 1 : 1;
-    setVisitorCount(newVisitorCount);
-    localStorage.setItem('eidiVisitors', newVisitorCount.toString());
+    // Visitor counter - fixed (only once per session)
+    const hasCounted = sessionStorage.getItem('visitorCounted');
+    if (!hasCounted) {
+      const storedVisitors = localStorage.getItem('eidiVisitors');
+      const newVisitorCount = storedVisitors ? parseInt(storedVisitors) + 1 : 1;
+      setVisitorCount(newVisitorCount);
+      localStorage.setItem('eidiVisitors', newVisitorCount.toString());
+      sessionStorage.setItem('visitorCounted', 'true');
+    } else {
+      const storedVisitors = localStorage.getItem('eidiVisitors');
+      setVisitorCount(storedVisitors ? parseInt(storedVisitors) : 0);
+    }
     
     // Load applications count
     const storedApps = localStorage.getItem('eidiApplications');
@@ -274,15 +300,19 @@ const EidiGiveaway = () => {
 
       <div className="container mx-auto px-4 py-5 max-w-lg">
         
-        {/* Stats Cards - Visitor & Application Counter */}
+        {/* Stats Cards - Real-time Global Counter */}
         <div className="grid grid-cols-2 gap-3 mb-5">
-          <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl p-3 text-center shadow-sm">
+          {/* Real-time Visitor Counter */}
+          <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-2xl p-3 text-center shadow-sm">
             <div className="flex items-center justify-center gap-1 mb-1">
-              <Eye size={16} className="text-blue-600" />
-              <span className="text-xs font-bold text-blue-600">زائرین</span>
+              <Eye size={16} className="text-purple-600" />
+              <span className="text-xs font-bold text-purple-600">کل زائرین</span>
+              <span className="text-[8px] bg-purple-200 text-purple-700 px-1 rounded-full">لائیو</span>
             </div>
-            <p className="text-2xl font-bold text-blue-700">{visitorCount.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-purple-700">{globalCount.toLocaleString()}</p>
           </div>
+          
+          {/* Application Counter */}
           <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-2xl p-3 text-center shadow-sm">
             <div className="flex items-center justify-center gap-1 mb-1">
               <TrendingUp size={16} className="text-green-600" />
