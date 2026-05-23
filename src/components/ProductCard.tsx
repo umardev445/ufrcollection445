@@ -87,7 +87,7 @@ const ProductCard = React.memo(({ product, onQuickView }: { product: Product, on
       className="group bg-brand-white rounded-[20px] p-3 shadow-luxury hover:shadow-luxury-hover border border-brand-beige/40 flex flex-col justify-between hover:-translate-y-2 transition-all duration-300"
     >
       <Link to={`/product/${product.id}`} className="block h-full">
-        <div className="relative aspect-[3/4] overflow-hidden rounded-[14px] bg-brand-cream transition-all duration-500">
+        <div className="relative aspect-3/4 overflow-hidden rounded-[14px] bg-brand-cream transition-all duration-500">
           {/* Main Image - Pure CSS hover */}
           <img
             src={product.images[0] || 'https://images.unsplash.com/photo-1594235412407-5903f444f357?q=80&w=800'}
@@ -175,7 +175,7 @@ const ProductCard = React.memo(({ product, onQuickView }: { product: Product, on
             </button>
           </div>
           
-          <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <div className="absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         </div>
 
         {/* Lazy loaded modal */}

@@ -34,6 +34,7 @@ const About = lazy(() => import('./pages/About'));
 const Contact = lazy(() => import('./pages/Contact'));
 const Blog = lazy(() => import('./pages/Blog'));
 const NotFound = lazy(() => import('./pages/NotFound'));
+const EidiGiveaway = lazy(() => import('./pages/EidiGiveaway')); // ✅ Moved here
 
 // Admin Pages - Lazy Load
 const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'));
@@ -79,7 +80,7 @@ export default function App() {
                     <Route path="about" element={<About />} />
                     <Route path="contact" element={<Contact />} />
                     <Route path="blog" element={<Blog />} />
-                    {/* Policies routes - temporarily disabled */}
+                    <Route path="eidi-giveaway" element={<EidiGiveaway />} /> {/* ✅ Route added here */}
                     <Route path="*" element={<NotFound />} />
                   </Route>
 
