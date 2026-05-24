@@ -4,10 +4,25 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>UFR Collection</title>
+    <!-- Tailwind CDN - Temporary -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Custom Colors */
+      .bg-brand-gold { background-color: #B8860B !important; }
+      .text-brand-gold { color: #B8860B !important; }
+      .bg-brand-black { background-color: #1A1A1A !important; }
+      .bg-brand-cream { background-color: #FFFDF9 !important; }
+      @keyframes marquee {
+        from { transform: translateX(0); }
+        to { transform: translateX(-50%); }
+      }
+      .animate-marquee {
+        animation: marquee 30s linear infinite;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

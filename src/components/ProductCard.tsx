@@ -87,7 +87,7 @@ const ProductCard = React.memo(({ product, onQuickView }: { product: Product, on
       className="group bg-brand-white rounded-[20px] p-3 shadow-luxury hover:shadow-luxury-hover border border-brand-beige/40 flex flex-col justify-between hover:-translate-y-2 transition-all duration-300"
     >
       <Link to={`/product/${product.id}`} className="block h-full">
-        <div className="relative aspect-3/4 overflow-hidden rounded-[14px] bg-brand-cream transition-all duration-500">
+        <div className="relative overflow-hidden rounded-[14px] bg-brand-cream transition-all duration-500" style={{ aspectRatio: '3/4' }}>
           {/* Main Image - Pure CSS hover */}
           <img
             src={product.images[0] || 'https://images.unsplash.com/photo-1594235412407-5903f444f357?q=80&w=800'}
@@ -203,18 +203,22 @@ const ProductCard = React.memo(({ product, onQuickView }: { product: Product, on
               <span className="font-bold text-brand-black text-base">{formatPrice(product.price)}</span>
             )}
           </div>
-          <div className="flex items-center justify-center gap-1 opacity-80">
-            {[...Array(5)].map((_, i) => (
-              <Star
-                key={i}
-                size={10}
-                className={cn(i < Math.floor(product.rating) ? "text-brand-gold fill-brand-gold" : "text-brand-beige fill-brand-beige")}
-              />
-            ))}
-            <span className="text-[9px] text-brand-grey ml-1 tracking-tighter">
-              ({Number(product.reviewsCount) || 0} reviews)
-            </span>
-          </div>
+         <div className="flex items-center justify-center gap-1 opacity-80">
+  {[...Array(5)].map((_, i) => (
+    <Star
+      key={i}
+      size={10}
+      className={cn(
+        i < Math.floor(product.rating || 0) 
+          ? "text-brand-gold fill-brand-gold" 
+          : "text-gray-300 fill-gray-300"
+      )}
+    />
+  ))}
+  <span className="text-[9px] text-brand-grey ml-1 tracking-tighter">
+    ({product.reviewsCount && product.reviewsCount > 0 ? product.reviewsCount : 0} reviews)
+  </span>
+</div>
         </div>
       </Link>
     </div>

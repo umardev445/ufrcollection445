@@ -1,5 +1,6 @@
 // @ts-nocheck
 import React, { useEffect, useState, useRef, useMemo } from 'react';
+import OptimizedImage from '../components/OptimizedImage';
 import EidiPromoPopup from '../components/EidiPromoPopup';
 import { motion, AnimatePresence, useScroll, useTransform } from 'motion/react';
 import {
@@ -78,11 +79,11 @@ const Home = () => {
           luckyDrawService.getPromotionConfig()
         ]);
 
-        const fixedLatest = (latest || []).map(p => ({
-          ...p,
-          reviewsCount: Number(p.reviewsCount) || 0,
-          rating: Number(p.rating) || 0
-        }));
+       const fixedLatest = (latest || []).map(p => ({
+  ...p,
+  reviewsCount: p.reviewsCount !== undefined && p.reviewsCount !== null ? Number(p.reviewsCount) : 24,
+  rating: p.rating !== undefined && p.rating !== null ? Number(p.rating) : 4.2,
+}));
 
         const fixedBestSellers = (bestSellerProducts || []).map(p => ({
           ...p,
@@ -266,58 +267,57 @@ const Home = () => {
       )}
 
       {/* SHOP BY CATEGORY */}
-      <section className="py-12 px-4 md:py-24 md:px-8 bg-white">
-        <div className="container mx-auto max-w-7xl">
-          <div className="text-center mb-10 md:mb-16 space-y-3 md:space-y-4">
-            <motion.p 
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              className="text-brand-gold font-bold uppercase tracking-[0.3em] md:tracking-[0.4em] text-[9px] md:text-[10px]"
-            >
-              Exquisite Selection
-            </motion.p>
-            <h2 className="text-2xl md:text-5xl lg:text-6xl font-serif uppercase tracking-tight">SHOP BY CATEGORY</h2>
-            <div className="w-16 md:w-24 h-0.5 bg-brand-gold mx-auto mt-4 md:mt-6" />
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6 lg:gap-8">
-            {categories.map((cat, i) => (
-              <motion.div
-                key={cat.name}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="group"
-              >
-                <Link to={`/shop?category=${encodeURIComponent(cat.name)}`} className="block text-center">
-                  <div className="aspect-square md:aspect-[4/5] overflow-hidden rounded-2xl md:rounded-[2rem] mb-3 md:mb-5 relative shadow-md hover:shadow-xl transition-all duration-500 bg-brand-cream">
-                    <img
-                      src={cat.image || "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?q=80&w=400&h=500&fit=crop"}
-                      alt={cat.name}
-                      loading="lazy"
-                      decoding="async"
-                      sizes="(max-width: 768px) 50vw, 20vw"
-                      onError={(e) => {
-                        e.currentTarget.src = "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?q=80&w=400&h=500&fit=crop";
-                      }}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-brand-black/0 group-hover:bg-brand-black/20 transition-all duration-500" />
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                      <div className="bg-white/90 backdrop-blur-sm text-brand-black w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center transform translate-y-3 group-hover:translate-y-0 transition-all duration-500">
-                        <ArrowRight size={16} className="md:w-5 md:h-5" />
-                      </div>
-                    </div>
-                  </div>
-                  <h3 className="font-serif text-base md:text-xl tracking-wide group-hover:text-brand-gold transition-colors duration-300">{cat.name}</h3>
-                  <p className="text-[8px] md:text-[10px] uppercase tracking-[0.15em] md:tracking-[0.2em] text-gray-500 mt-1 font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-300">View Collection</p>
-                </Link>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+<section className="py-12 px-4 md:py-24 md:px-8 bg-white">
+  <div className="container mx-auto max-w-7xl">
+    <div className="text-center mb-10 md:mb-16 space-y-3 md:space-y-4">
+      <motion.p 
+        initial={{ opacity: 0, y: 10 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        className="text-brand-gold font-bold uppercase tracking-[0.3em] md:tracking-[0.4em] text-[9px] md:text-[10px]"
+      >
+        Exquisite Selection
+      </motion.p>
+      <h2 className="text-2xl md:text-5xl lg:text-6xl font-serif uppercase tracking-tight">SHOP BY CATEGORY</h2>
+      <div className="w-16 md:w-24 h-0.5 bg-brand-gold mx-auto mt-4 md:mt-6" />
+    </div>
+    
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6 lg:gap-8">
+      {categories.map((cat, i) => (
+        <motion.div
+          key={cat.name}
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: i * 0.1 }}
+          className="group"
+        >
+          <Link to={`/shop?category=${encodeURIComponent(cat.name)}`} className="block text-center">
+            <div className="aspect-square md:aspect-[4/5] overflow-hidden rounded-2xl md:rounded-[2rem] mb-3 md:mb-5 relative shadow-md hover:shadow-xl transition-all duration-500 bg-brand-cream">
+              {/* Use regular img tag instead of OptimizedImage */}
+              <img
+                src={cat.image || "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=400&h=500&fit=crop"}
+                alt={cat.name}
+                loading="lazy"
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                onError={(e) => {
+                  e.currentTarget.src = "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=400&h=500&fit=crop";
+                }}
+              />
+              <div className="absolute inset-0 bg-brand-black/0 group-hover:bg-brand-black/20 transition-all duration-500" />
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                <div className="bg-white/90 backdrop-blur-sm text-brand-black w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center transform translate-y-3 group-hover:translate-y-0 transition-all duration-500">
+                  <ArrowRight size={16} className="md:w-5 md:h-5" />
+                </div>
+              </div>
+            </div>
+            <h3 className="font-serif text-base md:text-xl tracking-wide group-hover:text-brand-gold transition-colors duration-300">{cat.name}</h3>
+            <p className="text-[8px] md:text-[10px] uppercase tracking-[0.15em] md:tracking-[0.2em] text-gray-500 mt-1 font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-300">View Collection</p>
+          </Link>
+        </motion.div>
+      ))}
+    </div>
+  </div>
+</section>
 
       {/* Error Message */}
       {fetchError && (

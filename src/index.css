@@ -1,6 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
 @import "tailwindcss";
 
+/* Custom Theme */
 @theme {
   --font-serif: "Playfair Display", serif;
   --font-sans: "Montserrat", sans-serif;
@@ -13,105 +13,46 @@
   --color-brand-black: #1A1A1A;
   --color-brand-black-light: #2C2C2C;
   --color-brand-grey: #6B6B6B;
-  --radius-luxury: 12px;
-  --radius-luxury-lg: 24px;
-  --shadow-luxury: 0 4px 12px rgba(0,0,0,0.05);
-  --shadow-luxury-hover: 0 20px 35px -12px rgba(0,0,0,0.15);
-  --shadow-gold-glow: 0 8px 24px rgba(212,175,55,0.2);
-
-  --animate-marquee: marquee 30s linear infinite;
-
-  @keyframes marquee {
-    from { transform: translateX(0); }
-    to { transform: translateX(-50%); }
-  }
 }
 
-@layer base {
-  body {
-    font-family: var(--font-sans);
-    background-color: var(--color-brand-cream);
-    color: var(--color-brand-black);
-  }
-  body::selection {
-    background-color: var(--color-brand-gold);
-    color: white;
-  }
-  h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-serif);
-  }
+/* Base Styles */
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-brand-cream);
+  color: var(--color-brand-black);
 }
 
-@layer components {
-  .luxury-card-hover {
-    transition: all 0.3s ease-out;
-  }
-  .luxury-card-hover:hover {
-    box-shadow: var(--shadow-luxury-hover);
-    transform: translateY(-4px);
-  }
-
-  .btn-primary {
-    background-color: var(--color-brand-gold);
-    color: var(--color-brand-black);
-    border-radius: 9999px;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    text-align: center;
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 0.625rem 1.5rem;
-    font-size: 10px;
-  }
-  
-  @media (min-width: 768px) {
-    .btn-primary {
-      padding: 0.75rem 2rem;
-      font-size: 12px;
-    }
-  }
-  
-  .btn-primary:hover {
-    background-color: var(--color-brand-black);
-    color: var(--color-brand-gold);
-    transform: scale(1.02);
-  }
-  
-  .btn-primary:active {
-    transform: scale(0.95);
-  }
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
 }
 
-@layer utilities {
-  @keyframes marquee {
-    from { transform: translateX(0); }
-    to { transform: translateX(-50%); }
-  }
-  .animate-marquee {
-    animation: marquee 30s linear infinite;
-  }
-}
-
-/* Force Gold Color */
-.text-brand-gold, 
-p.text-brand-gold,
-h2.text-brand-gold,
-span.text-brand-gold {
-  color: #8B6508 !important;
-}
-
+/* Brand Colors - Force Apply */
 .bg-brand-gold {
-  background-color: #8B6508 !important;
+  background-color: #B8860B !important;
 }
 
-.luxury-shadow {
-  box-shadow: var(--shadow-luxury);
+.text-brand-gold {
+  color: #B8860B !important;
 }
 
-.gold-gradient {
-  background: linear-gradient(135deg, #B8860B 0%, #F5F0E8 50%, #B8860B 100%);
+.bg-brand-black {
+  background-color: #1A1A1A !important;
+}
+
+.text-brand-black {
+  color: #1A1A1A !important;
+}
+
+.bg-brand-cream {
+  background-color: #FFFDF9 !important;
+}
+
+/* Animations */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
 }
