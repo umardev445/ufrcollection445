@@ -234,7 +234,7 @@ const EidiGiveaway = () => {
   // Success Screen
   if (showSuccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-linear-to-br from-green-50 to-emerald-100 flex items-center justify-center px-4">
         <motion.div 
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -261,7 +261,7 @@ const EidiGiveaway = () => {
   return (
     <div className="min-h-screen bg-gray-50 pb-10">
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-gray-900 to-brand-black text-white">
+      <div className="relative overflow-hidden bg-linear-to-br from-gray-900 to-brand-black text-white">
         <div className="absolute top-0 right-0 w-64 h-64 bg-brand-gold/20 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-yellow-500/10 rounded-full blur-3xl" />
         
@@ -303,7 +303,7 @@ const EidiGiveaway = () => {
         {/* Stats Cards - Real-time Global Counter */}
         <div className="grid grid-cols-2 gap-3 mb-5">
           {/* Real-time Visitor Counter */}
-          <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-2xl p-3 text-center shadow-sm">
+          <div className="bg-linear-to-r from-purple-50 to-purple-100 rounded-2xl p-3 text-center shadow-sm">
             <div className="flex items-center justify-center gap-1 mb-1">
               <Eye size={16} className="text-purple-600" />
               <span className="text-xs font-bold text-purple-600">کل زائرین</span>
@@ -313,7 +313,7 @@ const EidiGiveaway = () => {
           </div>
           
           {/* Application Counter */}
-          <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-2xl p-3 text-center shadow-sm">
+          <div className="bg-linear-to-r from-green-50 to-green-100 rounded-2xl p-3 text-center shadow-sm">
             <div className="flex items-center justify-center gap-1 mb-1">
               <TrendingUp size={16} className="text-green-600" />
               <span className="text-xs font-bold text-green-600">درخواست دہندگان</span>
@@ -353,7 +353,7 @@ const EidiGiveaway = () => {
             
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-brand-gold to-yellow-500 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2"
+              className="w-full bg-linear-to-r from-brand-gold to-yellow-500 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2"
             >
               <Gift size={18} /> درخواست جمع کریں
             </button>
@@ -375,7 +375,7 @@ const EidiGiveaway = () => {
             <motion.div 
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
-              className={`h-full rounded-full ${isUnlocked ? 'bg-green-500' : 'bg-gradient-to-r from-brand-gold to-yellow-500'}`}
+              className={`h-full rounded-full ${isUnlocked ? 'bg-green-500' : 'bg-linear-to-r from-brand-gold to-yellow-500'}`}
             />
           </div>
           
