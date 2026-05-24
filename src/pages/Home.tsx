@@ -384,42 +384,43 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Story Section */}
-      <section className="py-16 md:py-32 bg-[#141414] text-white">
-        <div className="container mx-auto px-4 max-w-7xl">
-          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
-            <div className="lg:w-1/2 relative group">
-               <motion.div
-                 initial={{ opacity: 0, scale: 0.95 }}
-                 whileInView={{ opacity: 1, scale: 1 }}
-                 viewport={{ once: true }}
-                 className="relative z-10"
-               >
-                 <img
-                   src="https://images.unsplash.com/photo-1594235412407-5903f444f357?q=80&w=1200"
-                   alt="Maison Craftsmanship"
-                   className="rounded-2xl shadow-2xl grayscale group-hover:grayscale-0 transition-all duration-700"
-                 />
-               </motion.div>
-               <div className="absolute -top-8 -left-8 md:-top-12 md:-left-12 w-32 h-32 md:w-48 md:h-48 bg-brand-gold/10 rounded-full blur-3xl" />
-            </div>
-            <div className="lg:w-1/2 space-y-6 md:space-y-8">
-               <p className="text-brand-gold font-bold uppercase tracking-[0.3em] md:tracking-[0.5em] text-[9px] md:text-[10px]">The Maison Philosophy</p>
-               <h2 className="text-3xl md:text-6xl lg:text-7xl font-serif leading-[1.2]">WHERE TRADITION MEETS LUXURY</h2>
-               <div className="space-y-4 md:space-y-5 text-white/70 font-light leading-relaxed text-base md:text-lg">
-                  <p>UFR Collection was born from a passion for preserving traditional craftsmanship while embracing contemporary luxury. Every piece in our collection is a labor of love, hand-embroidered by masters of the craft and tailored to perfection.</p>
-                  <p>Our commitment to quality and authenticity ensures that every garment tells a story of elegance, heritage, and modern sophistication.</p>
-               </div>
-               <div className="pt-4 md:pt-6">
-                 <Link to="/about" className="group relative inline-flex items-center gap-2 md:gap-3 bg-brand-gold text-brand-black px-8 md:px-10 py-3 md:py-4 rounded-full text-[9px] md:text-[10px] uppercase tracking-[0.2em] md:tracking-[0.3em] font-black hover:bg-white transition-all duration-500">
-                   Discover Our Legacy
-                   <ArrowRight size={14} className="md:w-4 md:h-4 group-hover:translate-x-1 transition-transform" />
-                 </Link>
-               </div>
-            </div>
-          </div>
-        </div>
-      </section>
+     {/* Story Section */}
+<section className="py-16 md:py-32 bg-[#141414] text-white">
+  <div className="container mx-auto px-4 max-w-7xl">
+    <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+      <div className="lg:w-1/2 relative group">
+         <motion.div
+           initial={{ opacity: 0, scale: 0.95 }}
+           whileInView={{ opacity: 1, scale: 1 }}
+           viewport={{ once: true }}
+           className="relative z-10"
+         >
+           {/* ✅ Apni local image yahan lagao */}
+           <img
+             src="/images/story-image.jpg"
+             alt="UFR Collection Craftsmanship"
+             className="rounded-2xl shadow-2xl grayscale group-hover:grayscale-0 transition-all duration-700 w-full h-auto object-cover"
+           />
+         </motion.div>
+         <div className="absolute -top-8 -left-8 md:-top-12 md:-left-12 w-32 h-32 md:w-48 md:h-48 bg-brand-gold/10 rounded-full blur-3xl" />
+      </div>
+      <div className="lg:w-1/2 space-y-6 md:space-y-8">
+         <p className="text-brand-gold font-bold uppercase tracking-[0.3em] md:tracking-[0.5em] text-[9px] md:text-[10px]">The Maison Philosophy</p>
+         <h2 className="text-3xl md:text-6xl lg:text-7xl font-serif leading-[1.2]">WHERE TRADITION MEETS LUXURY</h2>
+         <div className="space-y-4 md:space-y-5 text-white/70 font-light leading-relaxed text-base md:text-lg">
+            <p>UFR Collection was born from a passion for preserving traditional craftsmanship while embracing contemporary luxury. Every piece in our collection is a labor of love, hand-embroidered by masters of the craft and tailored to perfection.</p>
+            <p>Our commitment to quality and authenticity ensures that every garment tells a story of elegance, heritage, and modern sophistication.</p>
+         </div>
+         <div className="pt-4 md:pt-6">
+           <Link to="/about" className="group relative inline-flex items-center gap-2 md:gap-3 bg-brand-gold text-brand-black px-8 md:px-10 py-3 md:py-4 rounded-full text-[9px] md:text-[10px] uppercase tracking-[0.2em] md:tracking-[0.3em] font-black hover:bg-white transition-all duration-500">
+             Discover Our Legacy
+             <ArrowRight size={14} className="md:w-4 md:h-4 group-hover:translate-x-1 transition-transform" />
+           </Link>
+         </div>
+      </div>
+    </div>
+  </div>
+</section>
 
       {/* Recent Lucky Draw Winners */}
       {promoConfig?.winners && promoConfig.winners.length > 0 && promoConfig.announced && (
