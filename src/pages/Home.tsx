@@ -397,7 +397,7 @@ const Home = () => {
          >
            {/* ✅ Apni local image yahan lagao */}
            <img
-             src="/images/story-image.jpg"
+             src="/images\story-image.jpeg"
              alt="UFR Collection Craftsmanship"
              className="rounded-2xl shadow-2xl grayscale group-hover:grayscale-0 transition-all duration-700 w-full h-auto object-cover"
            />
